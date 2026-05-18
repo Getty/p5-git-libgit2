@@ -1,0 +1,10 @@
+Revision history for Git-Libgit2
+
+{{$NEXT}}
+  - Initial release
+  - Low-level FFI::Platypus bindings to libgit2 (via Alien::Libgit2)
+  - MVP surface: init/shutdown, version, error_last, repository_open_ext/free,
+    config_open_default, reference_lookup/create/delete/iterator_new/name/target,
+    oid_fromstr/tostr, blob_create_from_buffer/lookup/rawcontent/rawsize/free,
+    treebuilder_new/insert/write/free, commit_create/lookup/tree/message/free,
+    object_lookup/free, remote_lookup/url
