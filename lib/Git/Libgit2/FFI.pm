@@ -83,7 +83,7 @@ sub _attach_all {
   _attach git_reference_iterator_new       => [ 'opaque*', 'git_repository' ]                                    => 'int';
   _attach git_reference_iterator_glob_new  => [ 'opaque*', 'git_repository', 'string' ]                          => 'int';
   _attach git_reference_next               => [ 'opaque*', 'git_reference_iterator' ]                            => 'int';
-  _attach git_reference_next_name          => [ 'opaque*', 'git_reference_iterator' ]                            => 'int';
+  _attach git_reference_next_name          => [ 'string*', 'git_reference_iterator' ]                            => 'int';
   _attach git_reference_iterator_free      => [ 'git_reference_iterator' ]                                       => 'void';
   _attach git_reference_name_is_valid      => [ 'int*', 'string' ]                                               => 'int';
 
