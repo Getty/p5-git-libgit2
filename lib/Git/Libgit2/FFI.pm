@@ -26,6 +26,11 @@ sub ffi {
   $ffi->type( 'opaque' => 'git_signature'    );
   $ffi->type( 'opaque' => 'git_odb'          );
   $ffi->type( 'opaque' => 'git_credential'   );
+  $ffi->type( 'opaque' => 'git_revwalk'      );
+  $ffi->type( 'opaque' => 'git_branch_iterator' );
+  $ffi->type( 'opaque' => 'git_tag'          );
+  $ffi->type( 'opaque' => 'git_diff'         );
+  $ffi->type( 'opaque' => 'git_index'        );
 
   # git_credential_acquire_cb signature.
   # libgit2: int (*)(git_credential **out, const char *url,
@@ -174,6 +179,78 @@ sub _attach_all {
   _attach git_credential_default_new            => [ 'opaque*' ]                                              => 'int';
   _attach git_credential_username_new           => [ 'opaque*', 'string' ]                                    => 'int';
   _attach git_credential_free                   => [ 'git_credential' ]                                       => 'void';
+
+  # Clone — top-level convenience that does init + remote + fetch + checkout.
+  # Options struct is allocated in Perl as opaque buffer; size probed and padded.
+  _attach git_clone_options_init       => [ 'opaque', 'uint' ]                                                     => 'int';
+  _attach git_clone                    => [ 'opaque*', 'string', 'string', 'opaque' ]                              => 'int';
+
+  # Strarray cleanup (used for tag list, branch list iteration, etc.)
+  _attach git_strarray_free            => [ 'opaque' ]                                                             => 'void';
+
+  # Revwalk — iterate commits in topological / time order.
+  _attach git_revwalk_new              => [ 'opaque*', 'git_repository' ]                                          => 'int';
+  _attach git_revwalk_push             => [ 'git_revwalk', 'opaque' ]                                              => 'int';
+  _attach git_revwalk_push_head        => [ 'git_revwalk' ]                                                        => 'int';
+  _attach git_revwalk_push_ref         => [ 'git_revwalk', 'string' ]                                              => 'int';
+  _attach git_revwalk_push_glob        => [ 'git_revwalk', 'string' ]                                              => 'int';
+  _attach git_revwalk_push_range       => [ 'git_revwalk', 'string' ]                                              => 'int';
+  _attach git_revwalk_hide             => [ 'git_revwalk', 'opaque' ]                                              => 'int';
+  _attach git_revwalk_hide_head        => [ 'git_revwalk' ]                                                        => 'int';
+  _attach git_revwalk_hide_ref         => [ 'git_revwalk', 'string' ]                                              => 'int';
+  _attach git_revwalk_hide_glob        => [ 'git_revwalk', 'string' ]                                              => 'int';
+  _attach git_revwalk_next             => [ 'opaque', 'git_revwalk' ]                                              => 'int';
+  _attach git_revwalk_sorting          => [ 'git_revwalk', 'uint' ]                                                => 'int';
+  _attach git_revwalk_reset            => [ 'git_revwalk' ]                                                        => 'int';
+  _attach git_revwalk_simplify_first_parent => [ 'git_revwalk' ]                                                   => 'int';
+  _attach git_revwalk_free             => [ 'git_revwalk' ]                                                        => 'void';
+
+  # Branch — wraps git_reference under the hood but with branch-specific helpers.
+  _attach git_branch_create            => [ 'opaque*', 'git_repository', 'string', 'git_commit', 'int' ]           => 'int';
+  _attach git_branch_lookup            => [ 'opaque*', 'git_repository', 'string', 'int' ]                         => 'int';
+  _attach git_branch_delete            => [ 'git_reference' ]                                                      => 'int';
+  _attach git_branch_iterator_new      => [ 'opaque*', 'git_repository', 'int' ]                                   => 'int';
+  _attach git_branch_next              => [ 'opaque*', 'int*', 'git_branch_iterator' ]                             => 'int';
+  _attach git_branch_iterator_free     => [ 'git_branch_iterator' ]                                                => 'void';
+  _attach git_branch_name              => [ 'string*', 'git_reference' ]                                           => 'int';
+  _attach git_branch_is_head           => [ 'git_reference' ]                                                      => 'int';
+  _attach git_branch_move              => [ 'opaque*', 'git_reference', 'string', 'int' ]                          => 'int';
+
+  # Status — uses foreach callback to avoid walking git_status_entry structs.
+  # Callback: int (*)(const char *path, unsigned int status_flags, void *payload)
+  $ffi->type( '(string, uint, opaque)->int' => 'git_status_cb' );
+  _attach git_status_options_init      => [ 'opaque', 'uint' ]                                                     => 'int';
+  _attach git_status_foreach           => [ 'git_repository', 'git_status_cb', 'opaque' ]                          => 'int';
+  _attach git_status_foreach_ext       => [ 'git_repository', 'opaque', 'git_status_cb', 'opaque' ]                => 'int';
+  _attach git_status_file              => [ 'uint*', 'git_repository', 'string' ]                                  => 'int';
+
+  # Tag — annotated and lightweight.
+  _attach git_tag_create               => [ 'opaque', 'git_repository', 'string', 'git_object', 'git_signature', 'string', 'int' ] => 'int';
+  _attach git_tag_create_lightweight   => [ 'opaque', 'git_repository', 'string', 'git_object', 'int' ]            => 'int';
+  _attach git_tag_lookup               => [ 'opaque*', 'git_repository', 'opaque' ]                                => 'int';
+  _attach git_tag_delete               => [ 'git_repository', 'string' ]                                           => 'int';
+  _attach git_tag_list                 => [ 'opaque', 'git_repository' ]                                           => 'int';
+  _attach git_tag_list_match           => [ 'opaque', 'string', 'git_repository' ]                                 => 'int';
+  _attach git_tag_target               => [ 'opaque*', 'git_tag' ]                                                 => 'int';
+  _attach git_tag_target_id            => [ 'git_tag' ]                                                            => 'opaque';
+  _attach git_tag_message              => [ 'git_tag' ]                                                            => 'string';
+  _attach git_tag_name                 => [ 'git_tag' ]                                                            => 'string';
+  _attach git_tag_tagger               => [ 'git_tag' ]                                                            => 'opaque';
+  _attach git_tag_free                 => [ 'git_tag' ]                                                            => 'void';
+
+  # Diff — tree-to-tree / tree-to-workdir / index-to-workdir.
+  _attach git_diff_options_init        => [ 'opaque', 'uint' ]                                                     => 'int';
+  _attach git_diff_tree_to_tree        => [ 'opaque*', 'git_repository', 'git_tree', 'git_tree', 'opaque' ]        => 'int';
+  _attach git_diff_tree_to_workdir     => [ 'opaque*', 'git_repository', 'git_tree', 'opaque' ]                    => 'int';
+  _attach git_diff_tree_to_index       => [ 'opaque*', 'git_repository', 'git_tree', 'git_index', 'opaque' ]       => 'int';
+  _attach git_diff_index_to_workdir    => [ 'opaque*', 'git_repository', 'git_index', 'opaque' ]                   => 'int';
+  _attach git_diff_num_deltas          => [ 'git_diff' ]                                                           => 'size_t';
+  _attach git_diff_get_delta           => [ 'git_diff', 'size_t' ]                                                 => 'opaque';
+  _attach git_diff_free                => [ 'git_diff' ]                                                           => 'void';
+
+  # Index — needed for diff_index_to_workdir.
+  _attach git_repository_index         => [ 'opaque*', 'git_repository' ]                                          => 'int';
+  _attach git_index_free               => [ 'git_index' ]                                                          => 'void';
 }
 
 1;

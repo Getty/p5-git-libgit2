@@ -36,6 +36,22 @@ does this via Moo `DESTROY`.
 `git_remote_lookup`/`_url`,
 `git_error_last`.
 
+## Phase 5 General-purpose Surface
+
+Functions added past the karr MVP so this isn't karr-specific on CPAN:
+
+`git_clone`/`_options_init`,
+`git_revwalk_*` (new/push/push_head/push_ref/push_glob/push_range/hide*/next/sorting/reset/simplify_first_parent/free),
+`git_branch_create`/`_lookup`/`_delete`/`_iterator_new`/`_next`/`_iterator_free`/`_name`/`_is_head`/`_move`,
+`git_tag_create`/`_create_lightweight`/`_lookup`/`_delete`/`_list`/`_list_match`/`_target`/`_target_id`/`_message`/`_name`/`_tagger`/`_free`,
+`git_status_options_init`/`_foreach`/`_foreach_ext`/`_file`,
+`git_diff_options_init`/`_tree_to_tree`/`_tree_to_workdir`/`_tree_to_index`/`_index_to_workdir`/`_num_deltas`/`_get_delta`/`_free`,
+`git_repository_index`/`git_index_free`,
+`git_strarray_free`.
+
+`*_options_init` is preferred over the deprecated `*_init_options` (the
+latter is removed in libgit2 1.7+).
+
 ## Phase 4 Network + Auth additions
 
 `git_remote_fetch`/`_push`/`_connect`/`_ls`/`_disconnect`/`_create`/`_create_anonymous`,
