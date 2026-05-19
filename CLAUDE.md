@@ -36,8 +36,19 @@ does this via Moo `DESTROY`.
 `git_remote_lookup`/`_url`,
 `git_error_last`.
 
-Network ops (`git_remote_fetch`/`_push`, credential callbacks) come in
-Phase 4.
+## Phase 4 Network + Auth additions
+
+`git_remote_fetch`/`_push`/`_connect`/`_ls`/`_disconnect`/`_create`/`_create_anonymous`,
+`git_remote_init_callbacks`,
+`git_fetch_options_init`/`git_push_options_init`,
+`git_credential_userpass_plaintext_new`/`_ssh_key_new`/`_ssh_key_from_agent`/
+`_default_new`/`_username_new`/`_free`.
+
+The credential acquire callback type is registered as
+`(opaque, string, string, uint, opaque) -> int` — FFI::Platypus closures
+only allow native types, so the `git_credential **out` parameter is passed
+as a plain `opaque` (the pointer value). The closure writes the credential
+pointer into that address via `memcpy`.
 
 ## Build
 

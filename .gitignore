@@ -65,4 +65,5 @@ blib/
 .env
 .envrc
 Git-Libgit2-*/
+Git-Libgit2-*.tar.gz
 AGENTS.md

@@ -25,6 +25,16 @@ sub ffi {
   $ffi->type( 'opaque' => 'git_remote'       );
   $ffi->type( 'opaque' => 'git_signature'    );
   $ffi->type( 'opaque' => 'git_odb'          );
+  $ffi->type( 'opaque' => 'git_credential'   );
+
+  # git_credential_acquire_cb signature.
+  # libgit2: int (*)(git_credential **out, const char *url,
+  #                  const char *username_from_url,
+  #                  unsigned int allowed_types, void *payload)
+  # Closures in FFI::Platypus allow only native types — so the **out** is passed
+  # as a plain `opaque` (the pointer value). The Perl closure pokes the
+  # allocated credential pointer into that address itself.
+  $ffi->type( '(opaque, string, string, uint, opaque)->int' => 'git_credential_acquire_cb' );
 
   # git_oid is a 20-byte struct, but for our MVP we pass it as opaque
   # buffer (string of 20 bytes) or as hex via _fromstr/_tostr.
@@ -59,11 +69,13 @@ sub _attach_all {
   _attach git_repository_free      => [ 'git_repository' ]                          => 'void';
 
   # Config
-  _attach git_config_open_default  => [ 'opaque*' ]                                 => 'int';
-  _attach git_repository_config    => [ 'opaque*', 'git_repository' ]               => 'int';
-  _attach git_config_get_string    => [ 'opaque*', 'git_config', 'string' ]         => 'int';
-  _attach git_config_set_string    => [ 'git_config', 'string', 'string' ]          => 'int';
-  _attach git_config_free          => [ 'git_config' ]                              => 'void';
+  _attach git_config_open_default          => [ 'opaque*' ]                                 => 'int';
+  _attach git_repository_config            => [ 'opaque*', 'git_repository' ]               => 'int';
+  _attach git_repository_config_snapshot   => [ 'opaque*', 'git_repository' ]               => 'int';
+  _attach git_config_snapshot              => [ 'opaque*', 'git_config' ]                   => 'int';
+  _attach git_config_get_string            => [ 'string*', 'git_config', 'string' ]         => 'int';
+  _attach git_config_set_string            => [ 'git_config', 'string', 'string' ]          => 'int';
+  _attach git_config_free                  => [ 'git_config' ]                              => 'void';
 
   # OID
   _attach git_oid_fromstr          => [ 'opaque', 'string' ]                        => 'int';
@@ -138,11 +150,30 @@ sub _attach_all {
   _attach git_signature_free       => [ 'git_signature' ]                                                        => 'void';
 
   # Remote
-  _attach git_remote_lookup        => [ 'opaque*', 'git_repository', 'string' ]                                  => 'int';
-  _attach git_remote_create        => [ 'opaque*', 'git_repository', 'string', 'string' ]                        => 'int';
-  _attach git_remote_url           => [ 'git_remote' ]                                                           => 'string';
-  _attach git_remote_name          => [ 'git_remote' ]                                                           => 'string';
-  _attach git_remote_free          => [ 'git_remote' ]                                                           => 'void';
+  _attach git_remote_lookup            => [ 'opaque*', 'git_repository', 'string' ]                                  => 'int';
+  _attach git_remote_create            => [ 'opaque*', 'git_repository', 'string', 'string' ]                        => 'int';
+  _attach git_remote_create_anonymous  => [ 'opaque*', 'git_repository', 'string' ]                                  => 'int';
+  _attach git_remote_url               => [ 'git_remote' ]                                                           => 'string';
+  _attach git_remote_name              => [ 'git_remote' ]                                                           => 'string';
+  _attach git_remote_init_callbacks    => [ 'opaque', 'uint' ]                                                       => 'int';
+  _attach git_fetch_options_init       => [ 'opaque', 'uint' ]                                                       => 'int';
+  _attach git_push_options_init        => [ 'opaque', 'uint' ]                                                       => 'int';
+  # opts/refspecs passed as 'opaque' — we allocate the struct buffers in Perl.
+  _attach git_remote_fetch             => [ 'git_remote', 'opaque', 'opaque', 'string' ]                             => 'int';
+  _attach git_remote_push              => [ 'git_remote', 'opaque', 'opaque' ]                                       => 'int';
+  # connect/ls/disconnect — used by Git::Native::Remote for --prune support.
+  _attach git_remote_connect           => [ 'git_remote', 'int', 'opaque', 'opaque', 'opaque' ]                      => 'int';
+  _attach git_remote_ls                => [ 'opaque*', 'size_t*', 'git_remote' ]                                     => 'int';
+  _attach git_remote_disconnect        => [ 'git_remote' ]                                                           => 'int';
+  _attach git_remote_free              => [ 'git_remote' ]                                                           => 'void';
+
+  # Credentials — these allocate a git_credential* the callback hands back to libgit2.
+  _attach git_credential_userpass_plaintext_new => [ 'opaque*', 'string', 'string' ]                          => 'int';
+  _attach git_credential_ssh_key_new            => [ 'opaque*', 'string', 'string', 'string', 'string' ]      => 'int';
+  _attach git_credential_ssh_key_from_agent     => [ 'opaque*', 'string' ]                                    => 'int';
+  _attach git_credential_default_new            => [ 'opaque*' ]                                              => 'int';
+  _attach git_credential_username_new           => [ 'opaque*', 'string' ]                                    => 'int';
+  _attach git_credential_free                   => [ 'git_credential' ]                                       => 'void';
 }
 
 1;
