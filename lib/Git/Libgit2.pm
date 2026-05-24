@@ -103,7 +103,7 @@ sub _scalar_ptr {
 
 1;
 
-=head1 SYNOPSIS
+=synopsis
 
   use Git::Libgit2 qw( init_lib version check_rc );
 
@@ -115,7 +115,7 @@ sub _scalar_ptr {
   my $rc = Git::Libgit2::FFI::git_repository_open(\my $repo, '/path/to/.git');
   check_rc $rc;
 
-=head1 DESCRIPTION
+=description
 
 Low-level L<FFI::Platypus> bindings to the C<libgit2> C library, via
 L<Alien::Libgit2>.
@@ -128,7 +128,7 @@ for an idiomatic Moo wrapper with RAII handle management.
 C<init_lib>, C<shutdown_lib>, C<version>, C<check_rc>, C<oid_from_hex>,
 C<oid_to_hex>, plus object-type and repository-init constants.
 
-=head1 SEE ALSO
+=seealso
 
 L<Alien::Libgit2>, L<Git::Native>, L<FFI::Platypus>, L<libgit2|https://libgit2.org/>
 

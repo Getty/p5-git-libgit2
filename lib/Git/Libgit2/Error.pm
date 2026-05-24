@@ -57,18 +57,14 @@ use overload
 
 1;
 
-=head1 NAME
-
-Git::Libgit2::Error - Wraps git_error_last() into a Perl structure
-
-=head1 SYNOPSIS
+=synopsis
 
   my $rc = git_repository_open(\my $repo, $path);
   if ($rc < 0) {
     die Git::Libgit2::Error->last($rc);   # stringifies
   }
 
-=head1 DESCRIPTION
+=description
 
 Plain object with C<code>, C<klass>, C<message>. Stringifies via overload.
 Used by L<Git::Native> to construct typed exceptions.

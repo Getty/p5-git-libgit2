@@ -254,16 +254,12 @@ sub _attach_all {
 
 1;
 
-=head1 NAME
-
-Git::Libgit2::FFI - Internal FFI::Platypus instance for Git::Libgit2
-
-=head1 SYNOPSIS
+=synopsis
 
   use Git::Libgit2::FFI;
   my $ffi = Git::Libgit2::FFI::ffi();
 
-=head1 DESCRIPTION
+=description
 
 Internal use only. Holds the singleton C<FFI::Platypus> instance with all
 attached libgit2 functions. Consumers should use L<Git::Libgit2> instead.
