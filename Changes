@@ -1,5 +1,7 @@
 Revision history for Git-Libgit2
 
+{{$NEXT}}
+
 0.001     2026-05-24 17:56:31Z
   - Initial release
   - Low-level FFI::Platypus bindings to libgit2 (via Alien::Libgit2)
