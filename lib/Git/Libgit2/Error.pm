@@ -41,15 +41,65 @@ sub last {
   }, $class;
 }
 
+=method last
+
+    die Git::Libgit2::Error->last($rc);
+
+Construct an error object from libgit2's current thread-local error state
+(C<git_error_last>). C<$rc> is the return code that triggered the lookup and
+defaults to C<-1>. Always returns a blessed object, even when libgit2 reports
+no error — C<message> is then C<< <no error> >>.
+
+=cut
+
 sub code    { $_[0]->{code} }
+
+=method code
+
+    my $rc = $error->code;
+
+The libgit2 return code that triggered this error.
+
+=cut
+
 sub klass   { $_[0]->{klass} }
+
+=method klass
+
+    my $klass = $error->klass;
+
+The libgit2 error class (C<git_error_t> category). Currently always C<0> — the
+C<klass> field is not yet decoded from the C<git_error> struct.
+
+=cut
+
 sub message { $_[0]->{message} }
+
+=method message
+
+    my $msg = $error->message;
+
+The human-readable libgit2 error message, or C<< <no error> >> when libgit2
+reported none.
+
+=cut
 
 sub stringify {
   my $self = shift;
   sprintf 'libgit2 error %d (klass %d): %s',
     $self->{code}, $self->{klass}, $self->{message};
 }
+
+=method stringify
+
+    my $str = $error->stringify;
+    print "$error";   # same, via overloaded stringification
+
+Format the error as C<"libgit2 error CODE (klass KLASS): MESSAGE">. Also wired
+up as the C<""> overload, so the object stringifies to this in interpolation
+and when thrown.
+
+=cut
 
 use overload
   '""'     => \&stringify,

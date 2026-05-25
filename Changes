@@ -1,6 +1,12 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - Document every exported function (=func) and every Git::Libgit2::Error
+    method (=method) inline, using the @Author::GETTY POD shortcuts
+  - CI: drop nonexistent perl Docker image tags — perl:5.32-bookworm (5.32
+    only ships buster/bullseye; bookworm starts at 5.36) and the
+    perl:*-alpine* images (the official perl image has no Alpine variant);
+    the Alpine workflow is removed for now
 
 0.001     2026-05-24 17:56:31Z
   - Initial release

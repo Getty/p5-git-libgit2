@@ -48,6 +48,17 @@ sub ffi {
   return $ffi;
 }
 
+=func ffi
+
+    my $ffi = Git::Libgit2::FFI::ffi();
+
+Return the process-wide singleton C<FFI::Platypus> instance, building it on the
+first call: it opens the L<Alien::Libgit2> dynamic library, registers the
+libgit2 opaque types and callback signatures, and attaches every bound
+function. Internal — consumers should use L<Git::Libgit2> instead.
+
+=cut
+
 sub _attach {
   my ( $name, $args, $ret ) = @_;
   $ffi->attach( $name => $args => $ret );
