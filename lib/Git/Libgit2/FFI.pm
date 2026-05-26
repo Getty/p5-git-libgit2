@@ -30,6 +30,11 @@ sub ffi {
   $ffi->type( 'opaque' => 'git_tag'          );
   $ffi->type( 'opaque' => 'git_diff'         );
   $ffi->type( 'opaque' => 'git_index'        );
+  $ffi->type( 'opaque' => 'git_index_entry' );
+  $ffi->type( 'opaque' => 'git_annotated_commit' );
+  $ffi->type( 'opaque' => 'git_merge_head' );
+  $ffi->type( 'opaque' => 'git_reflog' );
+  $ffi->type( 'opaque' => 'git_reflog_entry' );
 
   # git_credential_acquire_cb signature.
   # libgit2: int (*)(git_credential **out, const char *url,
@@ -288,6 +293,29 @@ sub _attach_all {
   # Reset — reset a repository to a given object.
   _attach git_reset                  => [ 'git_repository', 'git_object', 'int', 'opaque' ]                        => 'int';
   _attach git_reset_default          => [ 'git_repository', 'git_object', 'opaque' ]                               => 'int';
+
+  # Merge — annotated commits and merge analysis.
+  _attach git_annotated_commit_lookup  => [ 'opaque*', 'git_repository', 'opaque' ]                                => 'int';
+  _attach git_annotated_commit_from_ref => [ 'opaque*', 'git_repository', 'git_reference' ]                      => 'int';
+  _attach git_annotated_commit_id      => [ 'git_annotated_commit' ]                                              => 'opaque';
+  _attach git_annotated_commit_free    => [ 'git_annotated_commit' ]                                               => 'void';
+  _attach git_merge_base               => [ 'opaque', 'git_repository', 'opaque', 'opaque' ]                     => 'int';
+  _attach git_merge_base_many         => [ 'opaque', 'git_repository', 'uint', 'opaque' ]                         => 'int';
+  _attach git_merge_analysis          => [ 'uint*', 'uint*', 'git_repository', 'opaque', 'uint' ]                  => 'int';
+  _attach git_merge_options_init      => [ 'opaque', 'uint' ]                                                      => 'int';
+
+  # Stash — save/restore working tree state.
+  _attach git_stash_save             => [ 'opaque*', 'git_repository', 'git_signature', 'string', 'uint' ]        => 'int';
+  _attach git_stash_apply           => [ 'git_repository', 'size_t', 'opaque' ]                                   => 'int';
+  _attach git_stash_drop            => [ 'git_repository', 'size_t' ]                                             => 'int';
+
+  # Reflog — history of ref updates.
+  _attach git_reflog_read           => [ 'opaque*', 'git_repository', 'string' ]                                  => 'int';
+  _attach git_reflog_entrycount     => [ 'git_reflog' ]                                                           => 'size_t';
+  _attach git_reflog_entry_byindex  => [ 'git_reflog', 'size_t' ]                                                 => 'opaque';
+  _attach git_reflog_entry_id_new  => [ 'git_reflog_entry' ]                                                  => 'opaque';
+  _attach git_reflog_entry_message => [ 'git_reflog_entry' ]                                                  => 'string';
+  _attach git_reflog_free          => [ 'git_reflog' ]                                                           => 'void';
 }
 
 1;
