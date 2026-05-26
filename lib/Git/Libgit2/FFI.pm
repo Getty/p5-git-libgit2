@@ -99,7 +99,7 @@ sub _attach_all {
 
   # Reference
   _attach git_reference_lookup     => [ 'opaque*', 'git_repository', 'string' ]                                  => 'int';
-  _attach git_reference_name_to_id => [ 'opaque',  'git_repository', 'string' ]                                  => 'int';
+  _attach git_reference_name_to_id => [ 'opaque', 'git_repository', 'string' ]                                => 'int';
   _attach git_reference_create     => [ 'opaque*', 'git_repository', 'string', 'opaque', 'int', 'string' ]       => 'int';
   _attach git_reference_delete     => [ 'git_reference' ]                                                        => 'int';
   _attach git_reference_remove     => [ 'git_repository', 'string' ]                                             => 'int';
@@ -235,7 +235,8 @@ sub _attach_all {
   _attach git_status_file              => [ 'uint*', 'git_repository', 'string' ]                                  => 'int';
 
   # Tag — annotated and lightweight.
-  _attach git_tag_create               => [ 'opaque', 'git_repository', 'string', 'git_object', 'git_signature', 'string', 'int' ] => 'int';
+  _attach git_tag_create               => [ 'opaque*', 'git_repository', 'string', 'opaque', 'opaque', 'string', 'int' ] => 'int';
+  _attach git_tag_create_from_buffer => [ 'opaque', 'git_repository', 'string', 'int' ]                            => 'int';
   _attach git_tag_create_lightweight   => [ 'opaque', 'git_repository', 'string', 'git_object', 'int' ]            => 'int';
   _attach git_tag_lookup               => [ 'opaque*', 'git_repository', 'opaque' ]                                => 'int';
   _attach git_tag_delete               => [ 'git_repository', 'string' ]                                           => 'int';
@@ -258,9 +259,35 @@ sub _attach_all {
   _attach git_diff_get_delta           => [ 'git_diff', 'size_t' ]                                                 => 'opaque';
   _attach git_diff_free                => [ 'git_diff' ]                                                           => 'void';
 
-  # Index — needed for diff_index_to_workdir.
+  # Index — staging area manipulation.
   _attach git_repository_index         => [ 'opaque*', 'git_repository' ]                                          => 'int';
-  _attach git_index_free               => [ 'git_index' ]                                                          => 'void';
+  _attach git_index_open              => [ 'opaque*', 'string' ]                                                    => 'int';
+  _attach git_index_read              => [ 'git_index', 'int' ]                                                     => 'int';
+  _attach git_index_write             => [ 'git_index' ]                                                            => 'int';
+  _attach git_index_read_tree         => [ 'git_index', 'git_tree' ]                                                => 'int';
+  _attach git_index_write_tree        => [ 'opaque', 'git_index' ]                                                  => 'int';
+  _attach git_index_add_bypath        => [ 'git_index', 'string' ]                                                  => 'int';
+  _attach git_index_add_all           => [ 'git_index', 'opaque', 'uint', 'opaque', 'opaque' ]                       => 'int';
+  _attach git_index_remove_bypath     => [ 'git_index', 'string' ]                                                 => 'int';
+  _attach git_index_clear             => [ 'git_index' ]                                                            => 'int';
+  _attach git_index_entrycount        => [ 'git_index' ]                                                            => 'size_t';
+  _attach git_index_get_byindex       => [ 'git_index', 'size_t' ]                                                  => 'opaque';
+  _attach git_index_find              => [ 'size_t*', 'git_index', 'string' ]                                       => 'int';
+  _attach git_index_free              => [ 'git_index' ]                                                            => 'void';
+
+  # Checkout — update workdir/index from a tree, index, or HEAD.
+  _attach git_checkout_options_init   => [ 'opaque', 'uint' ]                                                       => 'int';
+  _attach git_checkout_head          => [ 'git_repository', 'opaque' ]                                              => 'int';
+  _attach git_checkout_index         => [ 'git_repository', 'git_index', 'opaque' ]                                 => 'int';
+  _attach git_checkout_tree          => [ 'git_repository', 'git_object', 'opaque' ]                                => 'int';
+
+  # Revparse — resolve revision specs to objects.
+  _attach git_revparse_single         => [ 'opaque*', 'git_repository', 'string' ]                                  => 'int';
+  _attach git_revparse_ext           => [ 'opaque*', 'opaque*', 'git_repository', 'string' ]                        => 'int';
+
+  # Reset — reset a repository to a given object.
+  _attach git_reset                  => [ 'git_repository', 'git_object', 'int', 'opaque' ]                        => 'int';
+  _attach git_reset_default          => [ 'git_repository', 'git_object', 'opaque' ]                               => 'int';
 }
 
 1;
