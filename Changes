@@ -1,12 +1,11 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
-  - Document every exported function (=func) and every Git::Libgit2::Error
-    method (=method) inline, using the @Author::GETTY POD shortcuts
-  - CI: drop nonexistent perl Docker image tags — perl:5.32-bookworm (5.32
-    only ships buster/bullseye; bookworm starts at 5.36) and the
-    perl:*-alpine* images (the official perl image has no Alpine variant);
-    the Alpine workflow is removed for now
+  - Comprehensive POD pass: document every FFI function with =func, every
+    Error method with =method, add section headers per group, add README.md
+    with full function tables and architecture overview
+  - Fix three POD transcription typos in FFI.pm (broken code examples in
+    git_revwalk_hide_ref, git_credential_username_new, git_graph_ahead_behind)
 
 0.001     2026-05-24 17:56:31Z
   - Initial release

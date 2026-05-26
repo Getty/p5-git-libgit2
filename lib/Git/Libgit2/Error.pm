@@ -1,6 +1,7 @@
 # ABSTRACT: Wraps git_error_last() into a Perl structure
 
 package Git::Libgit2::Error;
+our $VERSION = '0.002';
 use strict;
 use warnings;
 use FFI::Platypus 2.00;
@@ -28,6 +29,17 @@ sub _decode {
   return ( $msg, 0 );
 }
 
+=method last
+
+    die Git::Libgit2::Error->last($rc);
+
+Construct an error object from libgit2's current thread-local error state
+(C<git_error_last>). C<$rc> is the return code that triggered the lookup and
+defaults to C<-1>. Always returns a blessed object, even when libgit2 reports
+no error — C<message> is then C<< <no error> >>.
+
+=cut
+
 sub last {
   my ( $class, $rc ) = @_;
   $rc //= -1;
@@ -41,19 +53,6 @@ sub last {
   }, $class;
 }
 
-=method last
-
-    die Git::Libgit2::Error->last($rc);
-
-Construct an error object from libgit2's current thread-local error state
-(C<git_error_last>). C<$rc> is the return code that triggered the lookup and
-defaults to C<-1>. Always returns a blessed object, even when libgit2 reports
-no error — C<message> is then C<< <no error> >>.
-
-=cut
-
-sub code    { $_[0]->{code} }
-
 =method code
 
     my $rc = $error->code;
@@ -62,7 +61,7 @@ The libgit2 return code that triggered this error.
 
 =cut
 
-sub klass   { $_[0]->{klass} }
+sub code    { $_[0]->{code} }
 
 =method klass
 
@@ -73,7 +72,7 @@ C<klass> field is not yet decoded from the C<git_error> struct.
 
 =cut
 
-sub message { $_[0]->{message} }
+sub klass   { $_[0]->{klass} }
 
 =method message
 
@@ -84,11 +83,7 @@ reported none.
 
 =cut
 
-sub stringify {
-  my $self = shift;
-  sprintf 'libgit2 error %d (klass %d): %s',
-    $self->{code}, $self->{klass}, $self->{message};
-}
+sub message { $_[0]->{message} }
 
 =method stringify
 
@@ -100,6 +95,12 @@ up as the C<""> overload, so the object stringifies to this in interpolation
 and when thrown.
 
 =cut
+
+sub stringify {
+  my $self = shift;
+  sprintf 'libgit2 error %d (klass %d): %s',
+    $self->{code}, $self->{klass}, $self->{message};
+}
 
 use overload
   '""'     => \&stringify,
@@ -116,7 +117,8 @@ use overload
 
 =description
 
-Plain object with C<code>, C<klass>, C<message>. Stringifies via overload.
-Used by L<Git::Native> to construct typed exceptions.
+Error object wrapping libgit2's thread-local C<git_error_last>. Provides
+C<code>, C<klass>, and C<message> accessors. Stringifies to a human-readable
+message via overload. Used by L<Git::Native> to construct typed exceptions.
 
 =cut
