@@ -35,6 +35,8 @@ sub ffi {
   $ffi->type( 'opaque' => 'git_merge_head' );
   $ffi->type( 'opaque' => 'git_reflog' );
   $ffi->type( 'opaque' => 'git_reflog_entry' );
+  $ffi->type( 'opaque' => 'git_rebase' );
+  $ffi->type( 'opaque' => 'git_rebase_operation' );
 
   # git_credential_acquire_cb signature.
   # libgit2: int (*)(git_credential **out, const char *url,
@@ -118,6 +120,7 @@ sub _attach_all {
   _attach git_reference_next_name          => [ 'string*', 'git_reference_iterator' ]                            => 'int';
   _attach git_reference_iterator_free      => [ 'git_reference_iterator' ]                                       => 'void';
   _attach git_reference_name_is_valid      => [ 'int*', 'string' ]                                               => 'int';
+  _attach git_reference_peel              => [ 'opaque*', 'git_reference', 'int' ]                                => 'int';
 
   # Object
   _attach git_object_lookup        => [ 'opaque*', 'git_repository', 'opaque', 'int' ]                           => 'int';
@@ -316,6 +319,33 @@ sub _attach_all {
   _attach git_reflog_entry_id_new  => [ 'git_reflog_entry' ]                                                  => 'opaque';
   _attach git_reflog_entry_message => [ 'git_reflog_entry' ]                                                  => 'string';
   _attach git_reflog_free          => [ 'git_reflog' ]                                                           => 'void';
+
+  # Rebase — reapply commits on a new base.
+  _attach git_rebase_init          => [ 'opaque*', 'git_repository', 'git_annotated_commit', 'git_annotated_commit', 'git_annotated_commit', 'opaque' ] => 'int';
+  _attach git_rebase_open          => [ 'opaque*', 'git_repository', 'opaque' ]                                  => 'int';
+  _attach git_rebase_next          => [ 'opaque*', 'git_rebase' ]                                               => 'int';
+  _attach git_rebase_commit        => [ 'opaque', 'git_rebase', 'git_signature', 'git_signature', 'string', 'string' ] => 'int';
+  _attach git_rebase_abort         => [ 'git_rebase' ]                                                           => 'int';
+  _attach git_rebase_finish        => [ 'git_rebase', 'git_signature' ]                                          => 'int';
+  _attach git_rebase_free          => [ 'git_rebase' ]                                                           => 'void';
+  _attach git_rebase_operation_entrycount => [ 'git_rebase' ]                                                    => 'size_t';
+  _attach git_rebase_operation_current    => [ 'git_rebase' ]                                                    => 'size_t';
+  _attach git_rebase_operation_byindex   => [ 'git_rebase', 'size_t' ]                                          => 'opaque';
+  _attach git_rebase_options_init   => [ 'opaque', 'uint' ]                                                      => 'int';
+  _attach git_rebase_orig_head_name => [ 'git_rebase' ]                                                          => 'string';
+  _attach git_rebase_orig_head_id   => [ 'git_rebase' ]                                                          => 'opaque';
+  _attach git_rebase_onto_name     => [ 'git_rebase' ]                                                          => 'string';
+  _attach git_rebase_onto_id       => [ 'git_rebase' ]                                                          => 'opaque';
+
+  # Cherry-pick — apply a single commit.
+  _attach git_cherrypick            => [ 'git_repository', 'git_commit', 'opaque' ]                              => 'int';
+  _attach git_cherrypick_commit     => [ 'opaque*', 'git_repository', 'git_commit', 'git_commit', 'uint', 'opaque' ] => 'int';
+  _attach git_cherrypick_options_init => [ 'opaque', 'uint' ]                                                   => 'int';
+
+  # Revert — inverse cherry-pick.
+  _attach git_revert                => [ 'git_repository', 'git_commit', 'opaque' ]                               => 'int';
+  _attach git_revert_commit         => [ 'opaque*', 'git_repository', 'git_commit', 'git_commit', 'uint', 'opaque' ] => 'int';
+  _attach git_revert_options_init   => [ 'opaque', 'uint' ]                                                       => 'int';
 }
 
 1;
