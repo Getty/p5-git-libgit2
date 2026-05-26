@@ -25,14 +25,20 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install Dist::Zilla
+        env:
+          PERL_CPANM_OPT: --mirror http://cpan.metacpan.org --mirror-only
         run: cpanm -nq Dist::Zilla Dist::Zilla::PluginBundle::Author::GETTY
       - name: Install Alien::Libgit2 from sibling repo
         working-directory: vendor/alien-libgit2
+        env:
+          PERL_CPANM_OPT: --mirror http://cpan.metacpan.org --mirror-only
         run: |
           dzil authordeps --missing | cpanm -nq
           dzil listdeps --missing | cpanm -nq
           dzil install
       - name: Install dependencies
+        env:
+          PERL_CPANM_OPT: --mirror http://cpan.metacpan.org --mirror-only
         run: |
           dzil authordeps --missing | cpanm -nq
           dzil listdeps --missing | cpanm -nq
