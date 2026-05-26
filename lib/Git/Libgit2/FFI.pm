@@ -133,6 +133,7 @@ sub _attach_all {
   _attach git_blob_lookup             => [ 'opaque*', 'git_repository', 'opaque' ]                               => 'int';
   _attach git_blob_rawcontent         => [ 'git_blob' ]                                                          => 'opaque';
   _attach git_blob_rawsize            => [ 'git_blob' ]                                                          => 'sint64';
+  _attach git_blob_is_binary          => [ 'git_blob' ]                                                          => 'int';
   _attach git_blob_free               => [ 'git_blob' ]                                                          => 'void';
 
   # Tree
@@ -307,6 +308,10 @@ sub _attach_all {
   _attach git_merge_analysis          => [ 'uint*', 'uint*', 'git_repository', 'opaque', 'uint' ]                  => 'int';
   _attach git_merge_options_init      => [ 'opaque', 'uint' ]                                                      => 'int';
 
+  # Graph — ancestry and relationship queries.
+  _attach git_graph_ahead_behind     => [ 'size_t*', 'size_t*', 'git_repository', 'opaque', 'opaque' ]            => 'int';
+  _attach git_graph_descendant_of    => [ 'git_repository', 'opaque', 'opaque' ]                                  => 'int';
+
   # Stash — save/restore working tree state.
   _attach git_stash_save             => [ 'opaque*', 'git_repository', 'git_signature', 'string', 'uint' ]        => 'int';
   _attach git_stash_apply           => [ 'git_repository', 'size_t', 'opaque' ]                                   => 'int';
@@ -346,6 +351,12 @@ sub _attach_all {
   _attach git_revert                => [ 'git_repository', 'git_commit', 'opaque' ]                               => 'int';
   _attach git_revert_commit         => [ 'opaque*', 'git_repository', 'git_commit', 'git_commit', 'uint', 'opaque' ] => 'int';
   _attach git_revert_options_init   => [ 'opaque', 'uint' ]                                                       => 'int';
+
+  # ODB — object database low-level access.
+  _attach git_odb_new               => [ 'opaque*', 'git_repository' ]                                          => 'int';
+  _attach git_repository_odb        => [ 'opaque*', 'git_repository' ]                                          => 'int';
+  _attach git_odb_exists            => [ 'git_odb', 'opaque' ]                                                  => 'int';
+  _attach git_odb_free              => [ 'git_odb' ]                                                            => 'void';
 }
 
 1;
