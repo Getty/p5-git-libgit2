@@ -1,5 +1,7 @@
 Revision history for Git-Libgit2
 
+{{$NEXT}}
+
 0.003     2026-05-27 14:53:34Z
   - New binding git_repository_set_head: pin HEAD at a (possibly unborn)
     branch, e.g. to force 'main' on a freshly init'd repo regardless of the

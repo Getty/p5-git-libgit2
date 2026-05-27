@@ -1,7 +1,7 @@
 # ABSTRACT: Low-level FFI bindings to libgit2
 
 package Git::Libgit2;
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 use strict;
 use warnings;
 use Carp ();
