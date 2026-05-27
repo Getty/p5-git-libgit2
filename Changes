@@ -1,6 +1,23 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - New binding git_repository_set_head: pin HEAD at a (possibly unborn)
+    branch, e.g. to force 'main' on a freshly init'd repo regardless of the
+    compiled-in default or ambient init.defaultBranch
+  - Group A accessor/predicate complements:
+    repository_head/head_unborn/head_detached,
+    reference_symbolic_create/symbolic_target/symbolic_set_target/set_target/
+    resolve/shorthand/is_branch/is_remote/is_tag,
+    commit_id/time/time_offset/summary
+  - Add TODO.md cataloguing the remaining unbound libgit2 1.5.1 surface
+    (Group B: merge content-level, diff/patch text, index conflicts, stash
+    iteration, branch upstream, typed config, remote management; Group C:
+    blame, describe, submodule, worktree, notes, apply, attr/ignore,
+    pathspec, mailmap) with per-family FFI gotchas
+  - CI: pin the sibling Alien::Libgit2 install step to bash (the perl
+    container falls back to dash, which lacks 'set -o pipefail')
+  - Fix t/01 workdir comparison on macOS (resolve the /var -> /private/var
+    symlink so it matches libgit2's canonical path)
 
 0.002     2026-05-27 12:43:29Z
   - Update CI workflows to use the shared dzil-test composite action from
