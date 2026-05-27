@@ -45,6 +45,7 @@ jobs:
         working-directory: vendor/alien-libgit2
         env:
           PERL_CPANM_OPT: --mirror http://cpan.metacpan.org --mirror-only
+        shell: bash
         run: |
           set -euo pipefail
           dzil authordeps --missing | cpanm -nq
