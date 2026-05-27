@@ -17,7 +17,9 @@ ok( $repo, 'git_repository_init returned a handle' );
 
 is(
   Git::Libgit2::FFI::git_repository_workdir($repo),
-  "$tmp/",
+  # libgit2 returns the canonical (symlink-resolved) path, so resolve our
+  # side too — on macOS /var is a symlink to /private/var. No-op on Linux.
+  $tmp->realpath . '/',
   'workdir matches'
 );
 
