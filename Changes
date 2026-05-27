@@ -1,6 +1,6 @@
 Revision history for Git-Libgit2
 
-{{$NEXT}}
+0.002     2026-05-27 12:43:29Z
   - Update CI workflows to use the shared dzil-test composite action from
     [@Author::GETTY]; fixes missing Test::Pod by using listdeps --author
     in the sibling Alien::Libgit2 install step
