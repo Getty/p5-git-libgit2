@@ -47,6 +47,7 @@ Functions added past the karr MVP so this isn't karr-specific on CPAN:
 `git_status_options_init`/`_foreach`/`_foreach_ext`/`_file`,
 `git_diff_options_init`/`_tree_to_tree`/`_tree_to_workdir`/`_tree_to_index`/`_index_to_workdir`/`_num_deltas`/`_get_delta`/`_free`,
 `git_repository_index`/`git_index_free`,
+`git_repository_set_head`,
 `git_strarray_free`.
 
 `*_options_init` is preferred over the deprecated `*_init_options` (the

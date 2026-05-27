@@ -26,6 +26,15 @@ ok(
   'init with bare=0 produces non-bare repo'
 );
 
+# git_repository_set_head: point HEAD at an as-yet-unborn branch, then
+# confirm the HEAD file was rewritten (no head() binding to read it back).
+check_rc Git::Libgit2::FFI::git_repository_set_head( $repo, 'refs/heads/main' );
+like(
+  path( Git::Libgit2::FFI::git_repository_path($repo) )->child('HEAD')->slurp_utf8,
+  qr{ref:\s*refs/heads/main},
+  'set_head pointed HEAD at refs/heads/main'
+);
+
 Git::Libgit2::FFI::git_repository_free($repo);
 
 shutdown_lib();

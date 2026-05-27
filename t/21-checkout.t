@@ -12,6 +12,8 @@ init_lib();
 my $tmp  = Path::Tiny->tempdir;
 my $repo;
 check_rc Git::Libgit2::FFI::git_repository_init( \$repo, "$tmp", 0 );
+# Pin HEAD to 'main' (sterile CI containers default to 'master' otherwise).
+check_rc Git::Libgit2::FFI::git_repository_set_head( $repo, 'refs/heads/main' );
 
 # --- build a commit with a file in the tree ---
 my $blob_buf = "\0" x 20;

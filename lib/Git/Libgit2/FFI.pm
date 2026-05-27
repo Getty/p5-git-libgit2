@@ -104,6 +104,7 @@ sub _attach_all {
   _attach git_repository_config    => [ 'opaque*', 'git_repository' ]               => 'int';
   _attach git_repository_config_snapshot => [ 'opaque*', 'git_repository' ]         => 'int';
   _attach git_repository_odb       => [ 'opaque*', 'git_repository' ]              => 'int';
+  _attach git_repository_set_head  => [ 'git_repository', 'string' ]               => 'int';
 
   # ========================
   # Config
@@ -529,6 +530,15 @@ Open a repository with extended options. See libgit2 docs for flag values.
     Git::Libgit2::FFI::git_repository_init(\my $repo, '/path/to/create', $flags);
 
 Create a new repository. Free with C<git_repository_free>.
+
+=func git_repository_set_head
+
+    Git::Libgit2::FFI::git_repository_set_head($repo, 'refs/heads/main');
+
+Make HEAD point at the given reference. The reference need not exist yet
+(an unborn branch is valid), so this is the way to pin the initial branch
+of a freshly C<git_repository_init>'d repo instead of relying on libgit2's
+compiled-in default (C<master>) or the ambient C<init.defaultBranch> config.
 
 =func git_repository_workdir
 
