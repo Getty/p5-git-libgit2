@@ -1,6 +1,9 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - Update CI workflows to use the shared dzil-test composite action from
+    [@Author::GETTY]; fixes missing Test::Pod by using listdeps --author
+    in the sibling Alien::Libgit2 install step
   - Comprehensive POD pass: document every FFI function with =func, every
     Error method with =method, add section headers per group, add README.md
     with full function tables and architecture overview

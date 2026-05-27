@@ -28,6 +28,8 @@ jobs:
         with:
           repository: getty/p5-alien-libgit2
           path: vendor/alien-libgit2
+      - name: Fix safe.directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: perl -V
         run: perl -V
       - name: Install build prerequisites
@@ -38,20 +40,15 @@ jobs:
       - name: Install Dist::Zilla
         env:
           PERL_CPANM_OPT: --mirror http://cpan.metacpan.org --mirror-only
-        run: cpanm -nq Dist::Zilla Dist::Zilla::PluginBundle::Author::GETTY
+        run: cpanm -nq Dist::Zilla
       - name: Install Alien::Libgit2 from sibling repo
         working-directory: vendor/alien-libgit2
         env:
           PERL_CPANM_OPT: --mirror http://cpan.metacpan.org --mirror-only
         run: |
+          set -euo pipefail
           dzil authordeps --missing | cpanm -nq
-          dzil listdeps --missing | cpanm -nq
+          dzil listdeps --author --missing | cpanm -nq
           dzil install
-      - name: Install dependencies
-        env:
-          PERL_CPANM_OPT: --mirror http://cpan.metacpan.org --mirror-only
-        run: |
-          dzil authordeps --missing | cpanm -nq
-          dzil listdeps --missing | cpanm -nq
-      - name: Run tests
-        run: dzil test
+      - name: dzil test
+        uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@main
