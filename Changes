@@ -1,6 +1,6 @@
 Revision history for Git-Libgit2
 
-{{$NEXT}}
+0.004     2026-05-27 17:06:23Z
   - Fix git_tag_create binding: the oid out-param is a caller-allocated
     git_oid buffer, so it must be declared 'opaque' (not 'opaque*') like
     the lightweight/from_buffer variants. The old declaration made every
