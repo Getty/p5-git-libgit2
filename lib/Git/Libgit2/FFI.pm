@@ -105,6 +105,9 @@ sub _attach_all {
   _attach git_repository_config_snapshot => [ 'opaque*', 'git_repository' ]         => 'int';
   _attach git_repository_odb       => [ 'opaque*', 'git_repository' ]              => 'int';
   _attach git_repository_set_head  => [ 'git_repository', 'string' ]               => 'int';
+  _attach git_repository_head      => [ 'opaque*', 'git_repository' ]              => 'int';
+  _attach git_repository_head_unborn   => [ 'git_repository' ]                     => 'int';
+  _attach git_repository_head_detached => [ 'git_repository' ]                     => 'int';
 
   # ========================
   # Config
@@ -144,6 +147,15 @@ sub _attach_all {
   _attach git_reference_iterator_free     => [ 'git_reference_iterator' ]                                       => 'void';
   _attach git_reference_name_is_valid     => [ 'int*', 'string' ]                                               => 'int';
   _attach git_reference_peel             => [ 'opaque*', 'git_reference', 'int' ]                                => 'int';
+  _attach git_reference_symbolic_create  => [ 'opaque*', 'git_repository', 'string', 'string', 'int', 'string' ] => 'int';
+  _attach git_reference_symbolic_target  => [ 'git_reference' ]                                                  => 'string';
+  _attach git_reference_symbolic_set_target => [ 'opaque*', 'git_reference', 'string', 'string' ]                => 'int';
+  _attach git_reference_set_target       => [ 'opaque*', 'git_reference', 'opaque', 'string' ]                   => 'int';
+  _attach git_reference_resolve          => [ 'opaque*', 'git_reference' ]                                       => 'int';
+  _attach git_reference_shorthand        => [ 'git_reference' ]                                                  => 'string';
+  _attach git_reference_is_branch        => [ 'git_reference' ]                                                  => 'int';
+  _attach git_reference_is_remote        => [ 'git_reference' ]                                                  => 'int';
+  _attach git_reference_is_tag           => [ 'git_reference' ]                                                  => 'int';
 
   # ========================
   # Object
@@ -203,6 +215,10 @@ sub _attach_all {
   _attach git_commit_parent_id   => [ 'git_commit', 'uint' ]                                                   => 'opaque';
   _attach git_commit_author     => [ 'git_commit' ]                                                           => 'opaque';
   _attach git_commit_committer  => [ 'git_commit' ]                                                           => 'opaque';
+  _attach git_commit_id          => [ 'git_commit' ]                                                          => 'opaque';
+  _attach git_commit_time        => [ 'git_commit' ]                                                          => 'sint64';
+  _attach git_commit_time_offset => [ 'git_commit' ]                                                          => 'int';
+  _attach git_commit_summary     => [ 'git_commit' ]                                                          => 'string';
   _attach git_commit_free       => [ 'git_commit' ]                                                           => 'void';
 
   # ========================
@@ -540,6 +556,29 @@ Make HEAD point at the given reference. The reference need not exist yet
 of a freshly C<git_repository_init>'d repo instead of relying on libgit2's
 compiled-in default (C<master>) or the ambient C<init.defaultBranch> config.
 
+=func git_repository_head
+
+    Git::Libgit2::FFI::git_repository_head(\my $ref, $repo);
+
+Retrieve and resolve the reference pointed at by HEAD. Free the returned
+reference with C<git_reference_free>. Returns C<GIT_EUNBORNBRANCH> when HEAD
+points at a branch with no commits yet, or C<GIT_ENOTFOUND> when HEAD is
+missing.
+
+=func git_repository_head_unborn
+
+    my $unborn = Git::Libgit2::FFI::git_repository_head_unborn($repo);
+
+Return true (1) if HEAD points at a branch that does not exist yet (a fresh
+repo before its first commit), false (0) otherwise.
+
+=func git_repository_head_detached
+
+    my $detached = Git::Libgit2::FFI::git_repository_head_detached($repo);
+
+Return true (1) if HEAD is detached — i.e. it points directly at a commit
+rather than at a branch reference.
+
 =func git_repository_workdir
 
     my $dir = Git::Libgit2::FFI::git_repository_workdir($repo);
@@ -737,6 +776,65 @@ Check if a reference name is valid.
     Git::Libgit2::FFI::git_reference_peel(\my $obj, $ref, $type);
 
 Peel a reference to the underlying object of the given type. Free the object with C<git_object_free>.
+
+=func git_reference_symbolic_create
+
+    Git::Libgit2::FFI::git_reference_symbolic_create(\my $ref, $repo, 'HEAD', 'refs/heads/main', $force, $log_message);
+
+Create or update a symbolic reference pointing at C<$target>. Free with
+C<git_reference_free>.
+
+=func git_reference_symbolic_target
+
+    my $target = Git::Libgit2::FFI::git_reference_symbolic_target($ref);
+
+Return the target name of a symbolic reference (C<undef> for direct refs).
+
+=func git_reference_symbolic_set_target
+
+    Git::Libgit2::FFI::git_reference_symbolic_set_target(\my $new_ref, $ref, 'refs/heads/main', $log_message);
+
+Create a new reference with the same name as C<$ref> but a new symbolic
+target. Free the result with C<git_reference_free>.
+
+=func git_reference_set_target
+
+    Git::Libgit2::FFI::git_reference_set_target(\my $new_ref, $ref, $oid_ptr, $log_message);
+
+Create a new reference with the same name as C<$ref> but pointing at a new
+OID target. Free the result with C<git_reference_free>.
+
+=func git_reference_resolve
+
+    Git::Libgit2::FFI::git_reference_resolve(\my $resolved, $ref);
+
+Resolve a symbolic reference to a direct reference. Free with
+C<git_reference_free>.
+
+=func git_reference_shorthand
+
+    my $short = Git::Libgit2::FFI::git_reference_shorthand($ref);
+
+Return the human-friendly short name of the reference (e.g. C<main> instead
+of C<refs/heads/main>).
+
+=func git_reference_is_branch
+
+    my $is_branch = Git::Libgit2::FFI::git_reference_is_branch($ref);
+
+Return true if the reference lives under C<refs/heads/>.
+
+=func git_reference_is_remote
+
+    my $is_remote = Git::Libgit2::FFI::git_reference_is_remote($ref);
+
+Return true if the reference lives under C<refs/remotes/>.
+
+=func git_reference_is_tag
+
+    my $is_tag = Git::Libgit2::FFI::git_reference_is_tag($ref);
+
+Return true if the reference lives under C<refs/tags/>.
 
 =head2 Object
 
@@ -947,6 +1045,31 @@ Return the author signature (C<git_signature*>). Do not free.
     my $sig = Git::Libgit2::FFI::git_commit_committer($commit);
 
 Return the committer signature (C<git_signature*>). Do not free.
+
+=func git_commit_id
+
+    my $oid = Git::Libgit2::FFI::git_commit_id($commit);
+
+Return the OID of the commit (C<const git_oid *>). Do not free.
+
+=func git_commit_time
+
+    my $epoch = Git::Libgit2::FFI::git_commit_time($commit);
+
+Return the commit time as a Unix timestamp (seconds since the epoch).
+
+=func git_commit_time_offset
+
+    my $offset = Git::Libgit2::FFI::git_commit_time_offset($commit);
+
+Return the commit's timezone offset in minutes from UTC.
+
+=func git_commit_summary
+
+    my $summary = Git::Libgit2::FFI::git_commit_summary($commit);
+
+Return the short summary of the commit message (the first paragraph / first
+line).
 
 =func git_commit_free
 
