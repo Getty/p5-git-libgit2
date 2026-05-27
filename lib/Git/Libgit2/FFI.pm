@@ -321,7 +321,9 @@ sub _attach_all {
   # Tag
   # ========================
 
-  _attach git_tag_create              => [ 'opaque*', 'git_repository', 'string', 'opaque', 'opaque', 'string', 'int' ] => 'int';
+  # oid out-param is a caller-allocated git_oid buffer (opaque), not a
+  # pointer-to-pointer - same as the lightweight/from_buffer variants below.
+  _attach git_tag_create              => [ 'opaque', 'git_repository', 'string', 'opaque', 'opaque', 'string', 'int' ]  => 'int';
   _attach git_tag_create_from_buffer  => [ 'opaque', 'git_repository', 'string', 'int' ]                            => 'int';
   _attach git_tag_create_lightweight  => [ 'opaque', 'git_repository', 'string', 'git_object', 'int' ]            => 'int';
   _attach git_tag_lookup              => [ 'opaque*', 'git_repository', 'opaque' ]                                => 'int';

@@ -1,6 +1,12 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - Fix git_tag_create binding: the oid out-param is a caller-allocated
+    git_oid buffer, so it must be declared 'opaque' (not 'opaque*') like
+    the lightweight/from_buffer variants. The old declaration made every
+    git_tag_create call fail with "failed to create tag annotation". The
+    existing test only exercised git_tag_create_from_buffer, so it slipped
+    through; t/13-tag.t now also covers git_tag_create directly.
 
 0.003     2026-05-27 14:53:34Z
   - New binding git_repository_set_head: pin HEAD at a (possibly unborn)

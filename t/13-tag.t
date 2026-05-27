@@ -124,6 +124,23 @@ is( $tag_msg, "This is an annotated tag message\n", 'tag_message returns correct
 
 Git::Libgit2::FFI::git_tag_free($tag2_obj);
 
+# --- git_tag_create (high-level annotated create; oid out-param is a
+#     caller-allocated buffer, so the binding must use 'opaque' not
+#     'opaque*' — this is the path Git::Native's tag_create takes) ---
+my $c1_obj;
+check_rc Git::Libgit2::FFI::git_object_lookup( \$c1_obj, $repo, $c1_buf, -2 );  # GIT_OBJECT_ANY
+my $tag3_buf_raw = "\0" x 20;
+my ($tag3_buf) = scalar_to_buffer($tag3_buf_raw);
+check_rc Git::Libgit2::FFI::git_tag_create(
+  $tag3_buf, $repo, 'v3.0-annotated', $c1_obj, $sig, "high-level annotated\n", 0,
+);
+like( oid_to_hex($tag3_buf), qr/\A[0-9a-f]{40}\z/, 'annotated tag created via git_tag_create' );
+my $tag3_obj;
+check_rc Git::Libgit2::FFI::git_tag_lookup( \$tag3_obj, $repo, $tag3_buf );
+is( Git::Libgit2::FFI::git_tag_name($tag3_obj), 'v3.0-annotated', 'git_tag_create tag name round-trips' );
+Git::Libgit2::FFI::git_tag_free($tag3_obj);
+Git::Libgit2::FFI::git_object_free($c1_obj);
+
 # --- git_tag_list ---
 my $strarray_buf = "\0" x 4096;
 my ($strarray_ptr) = scalar_to_buffer($strarray_buf);
