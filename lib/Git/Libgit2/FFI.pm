@@ -48,6 +48,12 @@ sub ffi {
   # allocated credential pointer into that address itself.
   $ffi->type( '(opaque, string, string, uint, opaque)->int' => 'git_credential_acquire_cb' );
 
+  # git_transport_certificate_check_cb signature.
+  # libgit2: int (*)(git_cert *cert, int valid, const char *host, void *payload)
+  # `cert` is passed as a plain `opaque` (pointer value); the Perl closure
+  # peeks the git_cert / git_cert_hostkey fields out of it directly.
+  $ffi->type( '(opaque, int, string, opaque)->int' => 'git_transport_certificate_check_cb' );
+
   # git_oid is a 20-byte struct, but for our MVP we pass it as opaque
   # buffer (string of 20 bytes) or as hex via _fromstr/_tostr.
   $ffi->type( 'opaque' => 'git_oid_ptr' );
