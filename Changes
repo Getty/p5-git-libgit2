@@ -4,6 +4,8 @@ Revision history for Git-Libgit2
   - New closure type git_transport_certificate_check_cb, so callers can
     install a host-key / TLS certificate verification callback on remote
     fetch/push/connect.
+  - Bind git_config_get_bool, so callers can read booleans with libgit2's
+    own parsing rules instead of reimplementing them.
 
 0.004     2026-05-27 17:06:23Z
   - Fix git_tag_create binding: the oid out-param is a caller-allocated

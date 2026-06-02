@@ -122,6 +122,7 @@ sub _attach_all {
   _attach git_config_open_default => [ 'opaque*' ]                                 => 'int';
   _attach git_config_snapshot     => [ 'opaque*', 'git_config' ]                   => 'int';
   _attach git_config_get_string   => [ 'string*', 'git_config', 'string' ]         => 'int';
+  _attach git_config_get_bool     => [ 'int*', 'git_config', 'string' ]            => 'int';
   _attach git_config_set_string   => [ 'git_config', 'string', 'string' ]          => 'int';
   _attach git_config_free         => [ 'git_config' ]                              => 'void';
 
@@ -654,6 +655,13 @@ Create a snapshot of a config. Free with C<git_config_free>.
     Git::Libgit2::FFI::git_config_get_string(\my $str, $config, $key);
 
 Read a string config value.
+
+=func git_config_get_bool
+
+    Git::Libgit2::FFI::git_config_get_bool(\my $bool, $config, $key);
+
+Read a config value as a boolean, parsed with libgit2's own rules
+(true/yes/on/1, false/no/off/0). C<$bool> is set to 1 or 0.
 
 =func git_config_set_string
 
