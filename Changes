@@ -1,6 +1,6 @@
 Revision history for Git-Libgit2
 
-{{$NEXT}}
+0.005     2026-08-09 20:03:21Z
   - Bind git_reference_create_matching for compare-and-swap direct reference
     updates that reject stale expected OIDs with GIT_EMODIFIED.
   - Fix the git_reference_create test to treat its out-param as an owned
