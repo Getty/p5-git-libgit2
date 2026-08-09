@@ -1,0 +1,20 @@
+---
+claimed_at: 2026-08-09T18:10:39Z
+claimed_by: libgit2-worker
+class: standard
+completed: 2026-08-09
+created: 2026-08-09T18:04:07Z
+id: 3
+priority: medium
+started: 2026-08-09
+status: done
+tags:
+- test
+- ownership
+- reference
+title: Fix leaked git_reference_create test handle
+updated: 2026-08-09T18:14:31Z
+---
+
+t/10-reference.t passes a scalar OID buffer as git_reference_create git_reference **out, then interprets the returned pointer bytes as an OID and never frees the reference. Replace with a real handle out-param, assert git_reference_target, and free it.
+Fixed alongside #1: real git_reference ** out scalar, target assertion, and matching git_reference_free. Focused and full suites pass.
