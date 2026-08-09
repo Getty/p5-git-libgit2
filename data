@@ -1,0 +1,16 @@
+---
+class: standard
+completed: 2026-08-09
+created: 2026-08-09T18:03:33Z
+id: 2
+priority: high
+status: done
+tags:
+- drift
+- upstream
+- reference
+title: Clarify nonexistent set_target_matching symbol
+updated: 2026-08-09T19:40:03Z
+---
+
+Requested git_reference_set_target_matching is absent from installed libgit2 1.5.1 headers/shared library and current upstream main include/git2/refs.h. git_reference_set_target already performs stale-reference matching internally; only git_reference_create_matching exists as a public C symbol. Need upstream requirement correction or exact target libgit2 branch/signature.
