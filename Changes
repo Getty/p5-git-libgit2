@@ -1,6 +1,11 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - Bind git_reference_create_matching for compare-and-swap direct reference
+    updates that reject stale expected OIDs with GIT_EMODIFIED.
+  - Fix the git_reference_create test to treat its out-param as an owned
+    git_reference handle and free it, rather than misreading pointer bytes as
+    an OID.
   - New closure type git_transport_certificate_check_cb, so callers can
     install a host-key / TLS certificate verification callback on remote
     fetch/push/connect.

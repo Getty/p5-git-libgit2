@@ -117,6 +117,7 @@ automatically if one is not already installed on your system.
 | `git_reference_lookup` |
 | `git_reference_name_to_id` |
 | `git_reference_create` |
+| `git_reference_create_matching` |
 | `git_reference_delete` |
 | `git_reference_remove` |
 | `git_reference_target` |

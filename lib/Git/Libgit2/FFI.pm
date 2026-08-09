@@ -138,10 +138,11 @@ sub _attach_all {
   # Reference
   # ========================
 
-  _attach git_reference_lookup      => [ 'opaque*', 'git_repository', 'string' ]                                  => 'int';
-  _attach git_reference_name_to_id   => [ 'opaque', 'git_repository', 'string' ]                                => 'int';
-  _attach git_reference_create      => [ 'opaque*', 'git_repository', 'string', 'opaque', 'int', 'string' ]       => 'int';
-  _attach git_reference_delete      => [ 'git_reference' ]                                                        => 'int';
+  _attach git_reference_lookup          => [ 'opaque*', 'git_repository', 'string' ]                                           => 'int';
+  _attach git_reference_name_to_id      => [ 'opaque', 'git_repository', 'string' ]                                            => 'int';
+  _attach git_reference_create          => [ 'opaque*', 'git_repository', 'string', 'opaque', 'int', 'string' ]                  => 'int';
+  _attach git_reference_create_matching => [ 'opaque*', 'git_repository', 'string', 'opaque', 'int', 'opaque', 'string' ]        => 'int';
+  _attach git_reference_delete          => [ 'git_reference' ]                                                                 => 'int';
   _attach git_reference_remove      => [ 'git_repository', 'string' ]                                             => 'int';
   _attach git_reference_target      => [ 'git_reference' ]                                                        => 'opaque';
   _attach git_reference_name        => [ 'git_reference' ]                                                        => 'string';
@@ -714,6 +715,14 @@ Resolve a reference name to an OID.
     Git::Libgit2::FFI::git_reference_create(\my $ref, $repo, 'refs/heads/main', $oid_ptr, $force, $log_message);
 
 Create or update a direct reference. Free with C<git_reference_free>.
+
+=func git_reference_create_matching
+
+    Git::Libgit2::FFI::git_reference_create_matching(\my $ref, $repo, 'refs/heads/main', $oid_ptr, $force, $current_oid_ptr, $log_message);
+
+Conditionally create or update a direct reference only when its current target
+matches C<$current_oid_ptr>. Returns C<GIT_EMODIFIED> on a mismatch. Free the
+result with C<git_reference_free>.
 
 =func git_reference_delete
 
