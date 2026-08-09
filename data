@@ -1,0 +1,21 @@
+---
+claimed_at: 2026-08-09T18:10:13Z
+claimed_by: libgit2-worker
+class: standard
+completed: 2026-08-09
+created: 2026-08-09T17:58:49Z
+id: 1
+priority: high
+started: 2026-08-09
+status: done
+tags:
+- ffi
+- reference
+- test
+title: Bind matching reference update APIs
+updated: 2026-08-09T18:14:25Z
+---
+
+Add git_reference_create_matching and git_reference_set_target_matching to singleton FFI surface with correct OID pointer and reference out-parameter types, POD, README exports, and isolated ownership-safe regression smoke tests.
+Implemented and verified git_reference_create_matching. Requested git_reference_set_target_matching cannot be implemented: no such public symbol in installed 1.5.1 or upstream main; tracked separately as #2. Also fixed discovered git_reference_create test handle leak under #3. Focused test and recursive 23-file/5160-test suite pass.
+Ready for review: valid matching create binding, POD/README/Changes, success + stale mismatch regression and ownership fix. #2 blocks nonexistent requested set_target_matching.
