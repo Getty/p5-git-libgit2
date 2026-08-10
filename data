@@ -1,0 +1,16 @@
+---
+class: standard
+completed: 2026-08-10
+created: 2026-08-10T17:09:29Z
+id: 5
+priority: high
+status: done
+tags:
+- ffi
+- object
+title: Bind git_object_lookup_prefix
+updated: 2026-08-10T19:33:18Z
+---
+
+Attach git_object_lookup_prefix in FFI.pm Object section. Export GIT_OID_MINPREFIXLEN=4 in facade. Smoke test t/24-lookup-prefix.t: full-prefix lookup OK, ambiguous-prefix (len=0 over 2 objects) EAMBIGUOUS path verified, non-existent OID error. DONE.
+Implemented and committed in 8288815. Review found no binding errors; signature and GIT_OID_MINPREFIXLEN verified against /usr/include/git2 (libgit2 1.5.1).
