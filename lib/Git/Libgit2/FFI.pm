@@ -88,6 +88,18 @@ sub _attach_all {
   _attach git_libgit2_shutdown => []                          => 'int';
   _attach git_libgit2_version  => [ 'int*', 'int*', 'int*' ]  => 'int';
 
+  # git_libgit2_opts is variadic (int option, ...). FFI::Platypus requires the
+  # variable-argument types to be fixed at attach time, so this single function
+  # object serves exactly the two-vararg (int, string) form — i.e. only
+  # GIT_OPT_SET_SEARCH_PATH. Every option with a different vararg signature
+  # needs its own function object via $ffi->function(...) at the call site;
+  # that explicitly includes the one-string options such as
+  # GIT_OPT_SET_TEMPLATE_PATH, not just obviously different ones like
+  # SET_MWINDOW_SIZE (size_t). A mismatched argument list is not reported as
+  # a return code — libgit2 va_arg's whatever is on the stack. Not wrapped via
+  # _attach because the helper takes one args array, not a fixed/var split.
+  $ffi->attach( 'git_libgit2_opts' => [ 'int' ] => [ 'int', 'string' ] => 'int' );
+
   # ========================
   # Error
   # ========================
@@ -169,10 +181,11 @@ sub _attach_all {
   # Object
   # ========================
 
-  _attach git_object_lookup   => [ 'opaque*', 'git_repository', 'opaque', 'int' ]                           => 'int';
-  _attach git_object_id       => [ 'git_object' ]                                                           => 'opaque';
-  _attach git_object_type     => [ 'git_object' ]                                                           => 'int';
-  _attach git_object_free     => [ 'git_object' ]                                                           => 'void';
+  _attach git_object_lookup        => [ 'opaque*', 'git_repository', 'opaque', 'int' ]                                    => 'int';
+  _attach git_object_lookup_prefix => [ 'opaque*', 'git_repository', 'opaque', 'size_t', 'int' ]                          => 'int';
+  _attach git_object_id            => [ 'git_object' ]                                                                    => 'opaque';
+  _attach git_object_type          => [ 'git_object' ]                                                                    => 'int';
+  _attach git_object_free          => [ 'git_object' ]                                                                    => 'void';
 
   # ========================
   # Blob
@@ -523,6 +536,31 @@ Decrement the libgit2 reference count. Returns the remaining count.
 
 Store the library version into the three Integer references.
 
+=func git_libgit2_opts
+
+    Git::Libgit2::FFI::git_libgit2_opts(GIT_OPT_SET_SEARCH_PATH, GIT_CONFIG_LEVEL_SYSTEM, "");
+
+Set a libgit2 runtime option. The C function is variadic (C<int option, ...>);
+FFI::Platypus requires the variable-argument types to be fixed at attach time,
+so this binding serves exactly one vararg shape — the two-argument
+C<(int, string)> form — and therefore exactly one option,
+C<GIT_OPT_SET_SEARCH_PATH>. The use case is redirecting config search paths
+away from the user's F</etc/gitconfig> / F<~/.gitconfig> for test isolation:
+
+    git_libgit2_opts(GIT_OPT_SET_SEARCH_PATH, GIT_CONFIG_LEVEL_SYSTEM, "");
+
+Pass an empty string (C<"">) to blank a search path; passing C<undef> would
+reset it to the compiled-in default.
+
+Every option whose varargs differ needs its own variadic function object.
+That includes the single-string options such as
+C<GIT_OPT_SET_TEMPLATE_PATH> — declared
+C<opts(GIT_OPT_SET_TEMPLATE_PATH, const char *path)>, one vararg, not two —
+as much as the obviously different ones like C<SET_MWINDOW_SIZE> (a
+C<size_t>). A mismatched argument list is B<not> reported back as an error
+code: libgit2 C<va_arg>s whatever sits on the stack, so a surplus leading
+C<int> would be consumed as the C<const char *> and dereferenced.
+
 =head2 Error
 
 =func git_error_last
@@ -868,6 +906,17 @@ Return true if the reference lives under C<refs/tags/>.
     Git::Libgit2::FFI::git_object_lookup(\my $obj, $repo, $oid_ptr, $type);
 
 Look up any object by OID. Free with C<git_object_free>.
+
+=func git_object_lookup_prefix
+
+    Git::Libgit2::FFI::git_object_lookup_prefix(\my $obj, $repo, $oid_ptr, $len, $type);
+
+Look up an object by an abbreviated OID prefix. C<$oid_ptr> is the full
+20-byte C<git_oid> buffer (as for C<git_object_lookup>); C<$len> is the number
+of hex characters (nibbles) to match — NOT the byte count. Minimum is
+C<GIT_OID_MINPREFIXLEN> (4). Returns C<0> on success, C<GIT_EAMBIGUOUS> (-5)
+when the prefix matches more than one object, or another negative error code.
+Free the returned object with C<git_object_free>.
 
 =func git_object_id
 
