@@ -1,0 +1,50 @@
+---
+claimed_at: 2026-08-10T22:43:29Z
+claimed_by: main-agent
+class: standard
+completed: 2026-08-10
+created: 2026-08-10T22:38:46Z
+id: 14
+priority: medium
+started: 2026-08-10
+status: done
+tags:
+- doc
+- ffi
+- merge
+title: POD for git_cherrypick_commit / git_revert_commit documents the out-param as
+  an OID; it is a git_index** the caller must free
+updated: 2026-08-10T22:46:13Z
+---
+
+Found while fixing #13.
+
+lib/Git/Libgit2/FFI.pm, the =func blocks for git_cherrypick_commit (~line
+2018) and git_revert_commit (~line 2038):
+
+    Git::Libgit2::FFI::git_cherrypick_commit(\my $oid, $repo, $cherrypick, $our_commit, $parent_count, $opts);
+
+    Create the actual cherry-pick commit.
+
+Three things are wrong, and they are the same three things that made the
+test in #13 meaningless:
+
+1. arg0 is git_index **out (confirmed against /usr/include/git2/cherrypick.h
+   and revert.h, libgit2 1.5.1) -- the merged index, not an OID. Naming it
+   $oid tells the caller to hand over a git_oid buffer.
+2. Neither function creates a commit. They compute the index that results
+   from applying (or inverting) the change. "Create the actual cherry-pick
+   commit" is the opposite of what happens.
+3. The returned handle is owned by the caller and must be released with
+   git_index_free. Nothing says so, and this distribution has no DESTROY.
+
+Also: the 5th parameter is documented as $parent_count but the header calls
+it `unsigned int mainline` -- the parent index to diff a merge commit
+against, which must be 0 for a non-merge commit. Passing 1 fails with
+"mainline branch specified but <oid> is not a merge commit"; t/34 now
+asserts exactly that.
+
+Fix is prose-only in FFI.pm; the binding itself is correct
+([ "opaque*", "git_repository", "git_commit", "git_commit", "uint", "opaque" ]).
+Worth a sweep of the neighbouring =func blocks for the same wrong-out-param
+wording while in there.
