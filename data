@@ -1,0 +1,16 @@
+---
+class: standard
+completed: 2026-08-10
+created: 2026-08-09T18:09:40Z
+id: 4
+priority: high
+status: done
+tags:
+- test
+- isolation
+- drift
+title: Add gitconfig isolation to legacy tests
+updated: 2026-08-10T17:14:44Z
+---
+
+Repo contract says every test starts with local GIT_CONFIG_GLOBAL=/dev/null and GIT_CONFIG_SYSTEM=/dev/null. Existing t/00-load.t, t/03-error.t, and t/torture-init.t lack both lines. Found during matching-reference full-suite verification; keep outside current feature scope.
