@@ -1,0 +1,86 @@
+---
+claimed_at: 2026-08-10T22:39:05Z
+claimed_by: libgit2-worker
+class: standard
+completed: 2026-08-10
+created: 2026-08-10T21:58:56Z
+id: 12
+priority: medium
+started: 2026-08-10
+status: done
+tags:
+- test
+- ffi
+- config
+title: git_config_get_string coverage asserts nothing -- raw address for a string*
+  out-param plus a tautological rc check
+updated: 2026-08-10T22:42:44Z
+---
+
+Found by the grep asked for in #10: second occurrence of the "raw address
+for a typed pointer out-param" pattern.
+
+t/16-config.t:29-33
+
+    my $name_out_buf = "\0" x 256;
+    my ($name_out) = scalar_to_buffer($name_out_buf);
+    my $rc_get = Git::Libgit2::FFI::git_config_get_string( $name_out, $config, "user.name" );
+    ok( $rc_get < 0 || $rc_get == 0, "git_config_get_string returned (rc=" . $rc_get . ")" );
+
+git_config_get_string is attached as [ "string*", "git_config", "string" ].
+FFI::Platypus passes NULL when a non-ref is handed to a pointer-to-native
+param -- proven by calling git_libgit2_version (int*, int*, int*), which does
+not NULL-check its args, with a raw scalar_to_buffer address: segfault,
+exit 139. So libgit2 never sees $name_out and the 256-byte buffer is dead
+weight.
+
+Two problems, neither fixed under #10 because the fix is not mechanical:
+
+1. `rc < 0 || rc == 0` is true for every value libgit2 can return. The
+   assertion cannot fail. Actual rc today is -1.
+2. The out-param -- the only place the config value lands -- is never
+   inspected. The test proves nothing beyond "it does not segfault".
+
+Why it is not a one-line ref swap: the comment above it states that reading
+back from the same config handle after git_config_set_string is not safe in
+libgit2 1.5.x, which is why the sibling git_config_get_bool coverage right
+below reads off a git_config_snapshot. Making this assertion real means
+moving the read onto the snapshot path and asserting "Test User" -- deciding
+what the test is for, not fixing a typo.
+
+Suggested shape (mirror the get_bool block directly below):
+
+    check_rc git_config_snapshot( \my $snap, $config );
+    is( git_config_get_string( \my $name, $snap, "user.name" ), 0, ... );
+    is( $name, "Test User", ... );
+    git_config_free($snap);
+
+and drop the scalar_to_buffer buffer entirely. Verify falsifiability by
+mutating the expected string before calling it done.
+Fixed in t/16-config.t (uncommitted, working tree).
+
+Checked the premise first: the old comment claimed read-after-write on a
+live config handle is "unsafe in libgit2 1.5.x". It is not a stability
+issue, it is a hard API rule and libgit2 says so out loud -- on 1.5.1,
+git_config_get_string against the live handle returns -1 with
+"get_string called on a live config object" (klass 7, GIT_ERROR_CONFIG),
+because the out-param borrows storage owned by the config object. So the
+snapshot detour is required, not merely preferred, and the comment now
+states that.
+
+What replaced the tautology:
+- isnt($rc_live, 0)   -- live handle refuses get_string
+- like(Error->last($rc_live)->message, qr/live config object/)
+- is($rc_get, 0)      -- get_string on a git_config_snapshot
+- is($name, "Test User") -- the value actually written above
+The scalar_to_buffer buffer and the now-unused FFI::Platypus::Buffer import
+are gone. get_bool block below untouched (keeps its own snapshot).
+
+Falsifiability proven by mutation (each on a scratch copy, run, reverted):
+- write "Mutated User" instead of "Test User" -> not ok 5
+- read user.email instead of user.name       -> not ok 5
+- read off $config instead of $name_snap     -> not ok 4, not ok 5
+- flip isnt->is on the live-handle rc        -> not ok 2
+- expect a different error message           -> not ok 3
+
+t/16-config.t: 8 tests, pass. Full prove -lr t/: 26 files, 5244 tests, pass.
