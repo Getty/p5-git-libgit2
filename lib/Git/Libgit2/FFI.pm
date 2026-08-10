@@ -1686,9 +1686,26 @@ Return the entry at the given index.
 
 =func git_index_find
 
-    Git::Libgit2::FFI::git_index_find(\my $pos, $index, $path);
+    my $rc = Git::Libgit2::FFI::git_index_find(\my $pos, $index, $path);
 
-Find the position of an entry by path. Returns C<UINT_MAX> if not found.
+Find the position of the index entry for an exact path. Returns C<0> and
+writes that position into C<$pos> on a hit, or C<GIT_ENOTFOUND> when the
+index holds no entry for the path. The return value is an error code, never
+a position.
+
+C<$pos> is only meaningful when the return code is C<0>. On a miss libgit2
+leaves the out-param alone, so an unset C<my $pos> comes back as C<0> — a
+perfectly valid entry position. Always check the return code, never the
+position.
+
+The out-param is optional: pass C<undef> for it and FFI::Platypus hands a
+NULL pointer to libgit2, which is the supported way to ask whether a path is
+tracked without caring where.
+
+    my $tracked = Git::Libgit2::FFI::git_index_find(undef, $index, $path) == 0;
+
+To ask about a whole directory rather than one path, use
+C<git_index_find_prefix>.
 
 =func git_index_find_prefix
 

@@ -48,12 +48,34 @@ my $tree_hex = oid_to_hex($tree_oid_ptr);
 ok( $tree_hex, 'git_index_write_tree returned a tree OID' );
 
 # --- git_index_find ---
-my $find_idx_buf = "\0" x 8;
-my ($find_idx_ptr) = scalar_to_buffer($find_idx_buf);
-my $rc_find = Git::Libgit2::FFI::git_index_find( $find_idx_ptr, $index, 'testfile.txt' );
-ok( $rc_find == 0, 'git_index_find returned 0 for existing entry' );
-my $find_idx = unpack( 'Q', $find_idx_buf );
-is( $find_idx, 0, 'git_index_find returned index 0' );
+# A second entry, so that a reported position of 0 is an answer and not the
+# only value the index can possibly yield: 'aaa.txt' sorts before
+# 'testfile.txt', which therefore has to come back at position 1.
+Path::Tiny->new("$tmp/aaa.txt")->spew("first in index order\n");
+check_rc Git::Libgit2::FFI::git_index_add_bypath( $index, 'aaa.txt' );
+
+my $aaa_pos;
+is( Git::Libgit2::FFI::git_index_find( \$aaa_pos, $index, 'aaa.txt' ), 0,
+  'git_index_find returned 0 for existing entry' );
+is( $aaa_pos, 0, "git_index_find puts 'aaa.txt' at position 0" );
+
+my $find_idx;
+is( Git::Libgit2::FFI::git_index_find( \$find_idx, $index, 'testfile.txt' ), 0,
+  'git_index_find returned 0 for the second entry' );
+is( $find_idx, 1, "git_index_find puts 'testfile.txt' after 'aaa.txt'" );
+
+# Miss: the return code carries the answer. libgit2 leaves the out-param
+# untouched, so an unset scalar comes back as 0 -- a valid position.
+is( Git::Libgit2::FFI::git_index_find( \my $absent_pos, $index, 'nosuchfile.txt' ),
+  GIT_ENOTFOUND, 'git_index_find returns GIT_ENOTFOUND for an untracked path' );
+is( $absent_pos, 0, 'position out-param is left at 0 on a miss, so it must not be trusted' );
+
+# at_pos may be NULL for callers that only want the yes/no answer.
+is( Git::Libgit2::FFI::git_index_find( undef, $index, 'testfile.txt' ), 0,
+  'git_index_find accepts undef (NULL) for at_pos' );
+
+# Put the index back to the single entry the rest of the script expects.
+check_rc Git::Libgit2::FFI::git_index_remove_bypath( $index, 'aaa.txt' );
 
 # --- git_index_find_prefix ---
 # Own repo: prefix semantics need a nested tree plus the "tasks"/"tasksfoo.txt"
