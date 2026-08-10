@@ -1,0 +1,117 @@
+---
+claimed_at: 2026-08-10T22:39:57Z
+claimed_by: libgit2-worker
+class: standard
+completed: 2026-08-10
+created: 2026-08-10T21:59:37Z
+id: 13
+priority: medium
+started: 2026-08-10
+status: done
+tags:
+- test
+- ffi
+- merge
+title: cherrypick/revert tests pass a git_oid buffer for a git_index** out-param and
+  assert in both branches
+updated: 2026-08-10T22:42:57Z
+---
+
+Found by the grep asked for in #10. Same class as #10, worse: the out-param
+is not merely passed wrong, it is the wrong kind of object entirely.
+
+t/34-cherrypick-revert.t:66-80 and 86-100
+
+    my $cherryped_buf = "\0" x 20;            # git_oid-sized buffer
+    my ($cherryped_ptr) = scalar_to_buffer($cherryped_buf);
+    my $rc_cpc = Git::Libgit2::FFI::git_cherrypick_commit(
+      $cherryped_ptr, $repo, $commit1, $commit1, 1, undef
+    );
+    ...
+      my $cherryped_hex = oid_to_hex($cherryped_ptr);
+
+Both functions are attached as
+[ "opaque*", "git_repository", "git_commit", "git_commit", "uint", "opaque" ].
+arg0 is `git_index **out`: the merged index, a handle that must be released
+with git_index_free. It is not a git_oid, and neither function produces a
+commit OID -- they produce the index that results from applying the change.
+
+Three problems:
+
+1. A raw address for an opaque* out-param means FFI::Platypus passes NULL
+   (proven: git_libgit2_version, which does not NULL-check, segfaults when
+   given a raw scalar_to_buffer address). The buffer is never written.
+2. oid_to_hex($cherryped_ptr) in the rc==0 branch would hex-dump that
+   untouched buffer -- 40 zeros -- and note it as a result.
+3. Both branches assert unconditionally: ok(1, ...) on success,
+   ok($rc != 0, ...) on failure. The pair passes for every possible rc.
+   Today rc is -1 for both calls, so the success branch is dead code.
+
+Same shape at t/34-cherrypick-revert.t:62: git_cherrypick itself returns
+-13 (GIT_ECONFLICT) and is only note()d, never asserted.
+
+Fixing needs a decision, not a ref swap: pick a scenario where cherrypick
+and revert actually succeed (the current one applies commit1 onto itself),
+take the index out-param with a scalar ref, assert something real about it
+(git_index_entrycount / git_index_has_conflicts), and git_index_free it. If
+the no-op case is worth keeping, assert the specific rc and the
+git_error_last message instead of ok($rc != 0).
+
+Whatever lands must be mutation-checked: change an expected value, see red,
+change it back.
+Fixed in t/34-cherrypick-revert.t (uncommitted, working tree). Scenario
+rebuilt; both dead branches gone.
+
+Decision: the old scenario (pick c1 onto c1) could not succeed, for two
+independent reasons -- the picked commit had no parent to diff against, and
+mainline was passed as 1 for a non-merge commit, which libgit2 rejects
+outright. So the "no-op" framing was not a real case at all; it was an
+argument error. Rebuilt as a conflict-free scenario and asserted success:
+
+  c1 (a.txt)          base, refs/heads/main
+  |\
+  | c2 (a.txt b.txt)  refs/heads/topic
+  c3 (a.txt c.txt)    refs/heads/main
+
+- git_cherrypick_commit(\$cp_index, repo, c2, c3, 0, undef): rc 0, handle
+  returned, git_index_entrycount == 3 (a/b/c, no conflict stages).
+- the mainline misuse is kept, but as a real negative assertion: mainline=1
+  on a non-merge commit -> rc != 0 plus Error->last->message =~ /not a merge
+  commit/.
+- git_revert_commit(\$rv_index, repo, c2, c2, 0, undef): rc 0, handle,
+  entrycount == 1 (b.txt undone, a.txt left).
+- git_cherrypick at the old :62 no longer hides GIT_ECONFLICT. The -13 was
+  an artifact of the fixture, not of cherry-picking: the repository had
+  commits but had never been checked out, so the safe checkout inside
+  git_cherrypick collided with the missing files. The test now does
+  git_checkout_options_init + git_checkout_head first and asserts rc == 0,
+  b.txt in the working directory with "content b\n", and CHERRY_PICK_HEAD
+  present.
+
+Ownership: every git_index handle is freed (guarded with `if $handle`, so
+the failure path frees nothing rather than freeing garbage); trees,
+treebuilders, commits, signature and repository all freed as before. HEAD is
+pinned to refs/heads/main right after init -- the old file did not do that
+and git_cherrypick needs HEAD to resolve.
+
+Note on the parent array: git_commit_create wants
+`const git_commit *parents[]`, so the handle is pack("J", $commit1) and the
+address of that buffer is passed. First place in t/ that creates a commit
+with a parent.
+
+Falsifiability proven by mutation, behaviour-side rather than
+expectation-side (each on a scratch copy, run, reverted):
+- pick c2 onto c2 instead of c3        -> not ok 4 (entrycount)
+- mainline=1 on the success call       -> not ok 2,3,4
+- mainline=0 on the misuse call        -> not ok 5,6
+- revert c2 onto c3 instead of itself  -> not ok 9
+- mainline=1 on revert_commit          -> not ok 7,8,9
+- drop the git_checkout_head           -> not ok 10,11,12,13
+- change the b.txt blob content        -> not ok 12
+
+t/34-cherrypick-revert.t: 13 tests, pass. Full prove -lr t/: 26 files,
+5244 tests, pass.
+
+Drift found while in there, filed as #14: the FFI.pm POD for
+git_cherrypick_commit/git_revert_commit documents arg0 as \my $oid and
+claims the functions create a commit. Not touched here.
