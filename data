@@ -1,0 +1,72 @@
+---
+claimed_at: 2026-08-10T21:41:45Z
+claimed_by: libgit2-worker
+class: standard
+completed: 2026-08-10
+created: 2026-08-10T21:22:52Z
+id: 9
+priority: medium
+started: 2026-08-10
+status: done
+tags:
+- ffi
+- api
+- index
+title: Attach git_index_find_prefix -- prefix lookup over the index has no binding
+updated: 2026-08-10T22:21:40Z
+---
+
+Requested by App::karr (its board, ticket #107). karr needs to answer one
+question about a checkout: "is anything under this path tracked?", for a file
+and a directory alike. That is prefix matching over the index, and through the
+currently attached surface libgit2 cannot do it, so karr shells out to
+`git ls-files -z` for what CLAUDE.md calls a local operation -- not as a
+fallback from a native attempt, but because there is no native attempt to make.
+
+Missing, and it is exactly one line:
+
+    int git_index_find_prefix(size_t *at_pos, git_index *index, const char *prefix);
+
+Attaches the same way as its exact-path sibling on line 389:
+
+    _attach git_index_find_prefix  => [ 'size_t*', 'git_index', 'string' ] => 'int';
+
+Everything else the caller needs is ALREADY attached -- verified against the
+checkout, not assumed: git_repository_index (line 121), git_index_free (390),
+git_index_find (389), git_index_get_byindex, git_index_entrycount. So this is
+the single gap in an otherwise complete path.
+
+Semantics worth pinning down in the POD and the test, because both are sharp:
+
+- Returns 0 and writes the position on a hit, GIT_ENOTFOUND when no entry
+  carries the prefix. at_pos may be NULL when the caller only wants the
+  yes/no answer -- confirm Platypus passes a NULL through for 'size_t*' or
+  document that a scalar ref is required.
+- The match is a STRING prefix, not a path prefix. "tasks" also matches
+  "tasksfoo.txt". A caller asking about a directory has to pass the trailing
+  slash itself; a caller asking about a single file wants git_index_find
+  instead. Say so where someone will read it.
+
+Test alongside t/ coverage for git_index_find: an index with a nested entry,
+one probe that hits via the directory prefix, one that misses, and one that
+demonstrates the "tasks" / "tasksfoo.txt" trap so the semantics stay pinned.
+
+Downstream consumer: Git::Native has no index API at all (Repository exposes
+44 methods, none named index), so that repo gets its own ticket, which this
+one blocks.
+Binding, POD and test landed, uncommitted in the worktree (Changes deliberately untouched -- main agent writes that entry).
+
+Signature verified against the installed header (/usr/include/git2/index.h:722, libgit2 1.5.1, Alien::Libgit2 install_type=system):
+    GIT_EXTERN(int) git_index_find_prefix(size_t *at_pos, git_index *index, const char *prefix);
+Attached as [ size_t*, git_index, string ] => int, next to git_index_find.
+
+Empirical findings, all probed against 1.5.1 before being written down:
+- undef for at_pos IS passed through as NULL. rc=0 on a hit, GIT_ENOTFOUND on a miss, no die. Documented as the supported yes/no form; a scalar ref is NOT mandatory.
+- On a miss libgit2 does not touch the out-param, and Platypus copies the caller value back unchanged (preset 12345 survived). So an unset `my $pos` returns as 0 -- indistinguishable from a real hit at position 0. Pinned in POD and test: only trust the position when rc == 0.
+- String prefix confirmed: with only tasksfoo.txt left, "tasks/" -> GIT_ENOTFOUND while "tasks" -> 0 at the position of tasksfoo.txt.
+
+Test mutation-checked: retyping the out-param as opaque (the classic trap in the house rules) turns 3 of the new assertions red, so the coverage is not vacuous.
+
+prove -lr t/ green: 26 files, 5226 tests.
+
+Two pieces of adjacent drift found and filed instead of fixed here: #10 (the existing git_index_find test passes a raw pointer for size_t*, Platypus does not write through it, so its position assertion cannot fail) and #11 (git_index_find POD claims UINT_MAX on a miss; it returns GIT_ENOTFOUND).
