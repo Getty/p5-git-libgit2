@@ -1,0 +1,15 @@
+---
+class: standard
+completed: 2026-08-10
+created: 2026-08-10T17:09:40Z
+id: 7
+priority: medium
+status: done
+tags:
+- constants
+title: Export SORT/DIRECTION/BRANCH/FILEMODE/STATUS constant groups
+updated: 2026-08-10T19:33:54Z
+---
+
+Add git_sort_t, git_direction, git_branch_t, git_filemode_t, git_status_t constants to facade. Test t/26-constants.t with filemode octal+decimal cross-check. DONE.
+Implemented and committed in 8288815. All values verified against the installed headers (libgit2 1.5.1). Review added the missing gitconfig isolation to t/26-constants.t — it was the only file in the suite without it — plus value assertions for the ticket #6 constant group.
