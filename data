@@ -1,0 +1,70 @@
+---
+claimed_at: 2026-08-10T22:05:05Z
+claimed_by: libgit2-worker
+class: standard
+completed: 2026-08-10
+created: 2026-08-10T21:41:10Z
+id: 11
+priority: low
+started: 2026-08-10
+status: done
+tags:
+- pod
+- index
+title: git_index_find POD claims UINT_MAX on miss -- it returns GIT_ENOTFOUND
+updated: 2026-08-10T22:21:50Z
+---
+
+Found while implementing #9 (git_index_find_prefix), whose POD sits right
+below this one. Left alone there to keep that change surgical.
+
+lib/Git/Libgit2/FFI.pm, =func git_index_find:
+
+    Find the position of an entry by path. Returns C<UINT_MAX> if not found.
+
+Two things wrong with that sentence:
+
+1. git_index_find returns an int error code, not a position. On a miss it
+   returns GIT_ENOTFOUND (-3), verified against libgit2 1.5.1:
+
+       find "tasks/" rc=-3     # no such path in the index
+
+   UINT_MAX never appears anywhere in the return.
+
+2. It says nothing about the out-param, which is where the position
+   actually lands, and nothing about the fact that libgit2 leaves that
+   out-param untouched on a miss -- so an unset `my $pos` comes back as 0,
+   a perfectly valid position. Same trap as documented for
+   git_index_find_prefix in #9; the sibling entry should say it too.
+
+The header docs for both, for reference:
+
+    @param at_pos the address to which the position of the index entry is written (optional)
+    @return 0 or an error code
+
+Fix: rewrite the sentence in the style now used by git_index_find_prefix
+directly below it -- return code, out-param meaning, and the "only trust
+the position when the return is 0" caveat. Also note at_pos is optional
+(undef passes a NULL through, empirically confirmed for this signature
+shape).
+Fixed in the working tree (uncommitted).
+
+lib/Git/Libgit2/FFI.pm, =func git_index_find: the UINT_MAX sentence is gone.
+Rewritten in the shape of the git_index_find_prefix entry directly below --
+returns 0 on a hit and GIT_ENOTFOUND on a miss, the return value is an error
+code and never a position, the position lands in the out-param, the
+out-param is only meaningful when the return is 0 (libgit2 leaves it alone
+on a miss, so an unset my $pos comes back as 0), at_pos is optional and
+undef passes NULL through. Closes with a pointer to git_index_find_prefix
+for the directory question.
+
+Both new claims are now pinned by tests in t/20-index.t under #10:
+GIT_ENOTFOUND on a miss, the out-param left at 0 on a miss, and the
+undef/NULL at_pos call. Mutating the GIT_ENOTFOUND expectation to 0 makes
+the suite red (GOT -3, CHECK 0).
+
+podchecker on FFI.pm reports only the pre-existing PodWeaver directives
+(=func x235, =synopsis, =description) plus the pre-existing non-ASCII
+warning at line 72 -- no new POD errors from this block. The em dash used
+matches the neighbouring git_index_find_prefix entry.
+POD von git_index_find neu geschrieben im Stil des find_prefix-Eintrags: UINT_MAX-Behauptung raus, stattdessen 0 bei Treffer / GIT_ENOTFOUND bei Miss, Rueckgabe ist Fehlercode und nie Position, Position nur bei Rueckgabe 0 gueltig, at_pos optional via undef. Durch die #10-Tests gepinnt.
