@@ -2013,13 +2013,27 @@ Return the onto OID.
 
     Git::Libgit2::FFI::git_cherrypick($repo, $commit, $opts);
 
-Prepare to cherry-pick a commit.
+Cherry-pick a commit onto C<HEAD>, writing the result to the index and the
+working directory and leaving the repository in cherry-pick state. It does
+not create a commit — that is the caller's next step. Because it checks out,
+the working directory has to match C<HEAD> first; on a freshly initialised
+repository that has never been checked out, the safe checkout reports
+C<GIT_ECONFLICT> against the missing files.
 
 =func git_cherrypick_commit
 
-    Git::Libgit2::FFI::git_cherrypick_commit(\my $oid, $repo, $cherrypick, $our_commit, $parent_count, $opts);
+    Git::Libgit2::FFI::git_cherrypick_commit(\my $index, $repo, $cherrypick, $our_commit, $mainline, $opts);
 
-Create the actual cherry-pick commit.
+Compute the index that results from applying C<$cherrypick> onto
+C<$our_commit>, without touching C<HEAD>, the repository index, or the
+working directory. Despite the name it creates no commit.
+
+The out-param is a C<git_index> handle owned by the caller — release it with
+C<git_index_free>.
+
+C<$mainline> selects which parent of C<$cherrypick> to diff against and must
+be C<0> unless that commit is a merge; passing C<1> for an ordinary commit
+fails with "mainline branch specified but ... is not a merge commit".
 
 =func git_cherrypick_options_init
 
@@ -2033,13 +2047,23 @@ Initialize cherry-pick options struct.
 
     Git::Libgit2::FFI::git_revert($repo, $commit, $opts);
 
-Prepare to revert a commit.
+Revert a commit against C<HEAD>, writing the result to the index and the
+working directory and leaving the repository in revert state. It does not
+create a commit. The same checkout caveat as C<git_cherrypick> applies.
 
 =func git_revert_commit
 
-    Git::Libgit2::FFI::git_revert_commit(\my $oid, $repo, $revert, $our_commit, $parent_count, $opts);
+    Git::Libgit2::FFI::git_revert_commit(\my $index, $repo, $revert, $our_commit, $mainline, $opts);
 
-Create the actual revert commit.
+Compute the index that results from reverting C<$revert> against
+C<$our_commit>, without touching C<HEAD>, the repository index, or the
+working directory. Despite the name it creates no commit.
+
+The out-param is a C<git_index> handle owned by the caller — release it with
+C<git_index_free>.
+
+C<$mainline> works as it does for C<git_cherrypick_commit>: C<0> for an
+ordinary commit, the parent index for a merge.
 
 =func git_revert_options_init
 

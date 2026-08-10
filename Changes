@@ -40,6 +40,14 @@ Revision history for Git-Libgit2
     non-merge commit). It now builds a real two-branch history and
     asserts the merged index, the mainline misuse, and the working-tree
     effect of git_cherrypick.
+  - Correct the cherrypick/revert documentation. The out-param of
+    git_cherrypick_commit / git_revert_commit is a git_index handle the
+    caller must free, not an OID, and neither function creates a commit
+    despite the name — they compute the resulting index. The fifth
+    argument is mainline (the parent to diff a merge against, 0 for an
+    ordinary commit), not a parent count. git_cherrypick / git_revert
+    do write to the index and working directory, so they need a
+    checked-out working directory.
 
 0.005     2026-08-09 20:03:21Z
   - Bind git_reference_create_matching for compare-and-swap direct reference
