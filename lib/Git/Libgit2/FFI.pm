@@ -387,6 +387,7 @@ sub _attach_all {
   _attach git_index_entrycount   => [ 'git_index' ]                                                            => 'size_t';
   _attach git_index_get_byindex  => [ 'git_index', 'size_t' ]                                                  => 'opaque';
   _attach git_index_find         => [ 'size_t*', 'git_index', 'string' ]                                       => 'int';
+  _attach git_index_find_prefix  => [ 'size_t*', 'git_index', 'string' ]                                       => 'int';
   _attach git_index_free         => [ 'git_index' ]                                                            => 'void';
 
   # ========================
@@ -1688,6 +1689,32 @@ Return the entry at the given index.
     Git::Libgit2::FFI::git_index_find(\my $pos, $index, $path);
 
 Find the position of an entry by path. Returns C<UINT_MAX> if not found.
+
+=func git_index_find_prefix
+
+    my $rc = Git::Libgit2::FFI::git_index_find_prefix(\my $pos, $index, 'tasks/');
+
+Find the position of the first index entry whose path carries the given
+prefix. Returns C<0> and writes that position into C<$pos> on a hit, or
+C<GIT_ENOTFOUND> when no entry carries the prefix. This is the way to ask
+"is anything under this path tracked?" without walking the whole index.
+
+C<$pos> is only meaningful when the return code is C<0>. On a miss libgit2
+leaves the out-param alone, so an unset C<my $pos> comes back as C<0> — a
+perfectly valid entry position. Always check the return code, never the
+position.
+
+The out-param is optional: pass C<undef> for it and FFI::Platypus hands a
+NULL pointer to libgit2, which is the supported way to get the yes/no
+answer without allocating a position.
+
+    my $tracked = Git::Libgit2::FFI::git_index_find_prefix(undef, $index, 'tasks/') == 0;
+
+The match is a B<string> prefix, not a path prefix. C<'tasks'> also matches
+C<'tasksfoo.txt'>; only C<'tasks/'> restricts the answer to entries inside
+the C<tasks> directory, so a caller asking about a directory must supply the
+trailing slash itself. A caller asking about one specific file wants
+C<git_index_find> instead.
 
 =func git_index_free
 

@@ -14,6 +14,12 @@ Revision history for Git-Libgit2
   - Add gitconfig isolation (GIT_CONFIG_GLOBAL / GIT_CONFIG_SYSTEM) to
     t/00-load.t, t/03-error.t, and t/torture-init.t to match the rest of
     the suite.
+  - Bind git_index_find_prefix, so "is anything under this path tracked?"
+    can be answered natively instead of by shelling out to git ls-files.
+    The match is a string prefix, not a path prefix: a caller asking about
+    a directory must supply the trailing slash itself.
+  - Export GIT_OID_RAWSZ (20) and GIT_OID_HEXSZ (40), so consumers sizing
+    their own git_oid buffers stop redeclaring the widths locally.
 
 0.005     2026-08-09 20:03:21Z
   - Bind git_reference_create_matching for compare-and-swap direct reference

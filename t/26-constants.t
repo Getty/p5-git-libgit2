@@ -54,8 +54,19 @@ is GIT_STATUS_WT_UNREADABLE,    4096,  'GIT_STATUS_WT_UNREADABLE (1 << 12)';
 is GIT_STATUS_IGNORED,          16384, 'GIT_STATUS_IGNORED (1 << 14)';
 is GIT_STATUS_CONFLICTED,       32768, 'GIT_STATUS_CONFLICTED (1 << 15)';
 
-# OID prefix minimum (include/git2/oid.h #define)
-is GIT_OID_MINPREFIXLEN, 4, 'GIT_OID_MINPREFIXLEN';
+# OID sizes and prefix minimum (include/git2/oid.h #defines). RAWSZ/HEXSZ are
+# what consumers size their own git_oid buffers with — a wrong value here means
+# a short buffer that libgit2 writes past, so assert the literal widths.
+is GIT_OID_RAWSZ,        20, 'GIT_OID_RAWSZ (raw SHA-1 bytes)';
+is GIT_OID_HEXSZ,        40, 'GIT_OID_HEXSZ (hex digits, no NUL)';
+is GIT_OID_HEXSZ, GIT_OID_RAWSZ * 2, 'GIT_OID_HEXSZ is two hex digits per raw byte';
+is GIT_OID_MINPREFIXLEN, 4,  'GIT_OID_MINPREFIXLEN';
+
+# The value checks above only prove the names arrive via :all. Importing them
+# by name is the claim the ticket is about: both must sit in @EXPORT_OK, not
+# merely be defined in the package. Exporter dies on an unexported name.
+ok lives { Git::Libgit2->import(qw( GIT_OID_RAWSZ GIT_OID_HEXSZ )) },
+  'GIT_OID_RAWSZ / GIT_OID_HEXSZ are importable by name';
 
 # git_libgit2_opt_t (include/git2/common.h) — unnumbered enum, so the value is
 # purely positional: SET_SEARCH_PATH is the 6th member (index 5). Asserted here

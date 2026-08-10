@@ -27,6 +27,8 @@ our @EXPORT_OK = qw(
 
   GIT_REPOSITORY_INIT_BARE
 
+  GIT_OID_RAWSZ
+  GIT_OID_HEXSZ
   GIT_OID_MINPREFIXLEN
 
   GIT_OPT_SET_SEARCH_PATH
@@ -355,8 +357,9 @@ C<init_lib>, C<shutdown_lib>, C<version>, C<check_rc>, C<oid_from_hex>,
 C<oid_to_hex>.
 
 Constants, by group: object type (C<GIT_OBJECT_*>), repository init
-(C<GIT_REPOSITORY_INIT_BARE>), the abbreviated-OID minimum
-(C<GIT_OID_MINPREFIXLEN>), error codes (C<GIT_OK>, C<GIT_ERROR>, the
+(C<GIT_REPOSITORY_INIT_BARE>), OID sizes and the abbreviated-OID minimum
+(C<GIT_OID_RAWSZ>, C<GIT_OID_HEXSZ>, C<GIT_OID_MINPREFIXLEN>), error codes
+(C<GIT_OK>, C<GIT_ERROR>, the
 C<GIT_E*> family plus C<GIT_PASSTHROUGH>, C<GIT_ITEROVER>, C<GIT_RETRY>,
 C<GIT_TIMEOUT>), the C<git_libgit2_opts> option and config levels
 (C<GIT_OPT_SET_SEARCH_PATH>, C<GIT_CONFIG_LEVEL_*>,
