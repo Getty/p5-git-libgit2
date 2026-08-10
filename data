@@ -1,0 +1,101 @@
+---
+claimed_at: 2026-08-10T22:04:29Z
+claimed_by: libgit2-worker
+class: standard
+completed: 2026-08-10
+created: 2026-08-10T21:40:50Z
+id: 10
+priority: medium
+started: 2026-08-10
+status: done
+tags:
+- test
+- ffi
+- index
+title: git_index_find test asserts nothing -- Platypus does not write back through
+  a raw pointer passed for size_t*
+updated: 2026-08-10T22:21:45Z
+---
+
+Found while implementing #9 (git_index_find_prefix), which sits directly next
+to this coverage. Not fixed there to keep that change surgical.
+
+t/20-index.t:51-56 tests the out-param of git_index_find like this:
+
+    my $find_idx_buf = "\0" x 8;
+    my ($find_idx_ptr) = scalar_to_buffer($find_idx_buf);
+    my $rc_find = Git::Libgit2::FFI::git_index_find( $find_idx_ptr, $index, "testfile.txt" );
+    my $find_idx = unpack( "Q", $find_idx_buf );
+    is( $find_idx, 0, "git_index_find returned index 0" );
+
+The binding declares that parameter as size_t*. Passing a plain integer
+(the address from scalar_to_buffer) instead of a scalar ref does NOT make
+FFI::Platypus write through that address -- verified empirically against
+libgit2 1.5.1 with git_index_find_prefix, same signature shape:
+
+    ptr  "tasks/"  rc=0  buffer_after=0     # real answer is 1
+    ref  "tasks/"  rc=0  pos=1              # scalar ref works
+
+So the buffer stays at its "\0" x 8 initialisation and `is($find_idx, 0)`
+is vacuously true: it passes no matter what git_index_find does with the
+position. The assertion cannot fail, which makes it worse than no coverage
+-- it reads as if the out-param were pinned.
+
+Fix: pass a scalar ref, as the POD synopsis for git_index_find already
+shows and as the new git_index_find_prefix coverage does:
+
+    my $pos;
+    is( Git::Libgit2::FFI::git_index_find( \$pos, $index, "testfile.txt" ), 0, ... );
+    is( $pos, 0, ... );
+
+Then make the position assertion able to fail -- with one entry in the
+index the only valid position is 0, so add a second entry (or reuse the
+prefix repo) and assert a non-zero position for it.
+
+Worth a grep for the same scalar_to_buffer-for-a-pointer-out-param pattern
+elsewhere in t/; git_index_write_tree and git_blob_create_from_buffer use
+it too, but those take opaque, not a typed pointer, so they are fine. The
+suspect set is exactly the typed pointer params (size_t*, int*, ...).
+Fixed in the working tree (uncommitted).
+
+t/20-index.t: the git_index_find block now passes a scalar ref, and the
+index carries a second entry ("aaa.txt", which sorts before "testfile.txt")
+so position 0 is no longer the only possible answer -- testfile.txt must
+come back at 1. Added a GIT_ENOTFOUND miss case, the "out-param untouched
+on a miss" assertion, and an undef/NULL at_pos case. The extra entry is
+removed again right after the block so the linear index state of the rest
+of the script is unchanged.
+
+Falsifiability verified by mutation, not asserted:
+  a) old raw-pointer form restored -> GOT 0, CHECK 1, FAIL
+  b) expected position 1 -> 0        -> GOT 1, CHECK 0, FAIL
+  c) GIT_ENOTFOUND -> 0              -> GOT -3, CHECK 0, FAIL
+File restored after each; prove -lr t/ green (26 files, 5231 tests).
+
+Root cause pinned down while doing this: FFI::Platypus passes NULL, not the
+integer, when a non-ref is handed to a pointer-to-native param. Probe:
+git_libgit2_version (int*, int*, int*) does not NULL-check its args and
+segfaults (exit 139) when given a raw scalar_to_buffer address. That covers
+every typed pointer param, opaque* included.
+
+Grep for the same pattern across t/ (signature-aware scan of all 522
+FFI call sites against the 234 parsed _attach signatures, multi-line calls
+included) found three more, all with a non-ref for a *-typed param:
+  - t/13-tag.t:73 git_reference_create -- fixed here, see below
+  - t/16-config.t:31 git_config_get_string (string*) -> ticket #12
+  - t/34-cherrypick-revert.t:69/89 git_cherrypick_commit / git_revert_commit
+    (opaque*) -> ticket #13
+The three unparsed signatures (git_commit_create, git_libgit2_opts, ffi)
+were checked by hand: git_commit_create arg0 is plain opaque, which is the
+correct house pattern for a caller-allocated git_oid.
+
+t/13-tag.t:70-76 was fixed in the same pass because it is unambiguous:
+git_reference_create arg0 is git_reference** (opaque*), but the test handed
+it a 20-byte git_oid buffer and then asserted
+like(oid_to_hex($tag1_buf), qr/\A[0-9a-f]{40}\z/). With NULL passed, the
+buffer stayed zeroed and oid_to_hex returned 40 zeros, which matches the
+regex -- vacuous (verified with a standalone probe). Now takes the handle
+with a scalar ref, asserts git_reference_target equals the first commit
+OID, and frees the reference; mutating the expected OID to $c2_hex makes it
+red.
+Umgesetzt: git_index_find-Block in t/20-index.t nimmt jetzt eine Skalarreferenz; zweiter Index-Eintrag (aaa.txt) ergaenzt, damit Position 1 statt der einzig moeglichen 0 assertiert wird; GIT_ENOTFOUND-Miss, unangetasteter Out-Param und undef/NULL-at_pos zusaetzlich gepinnt. Fehlschlagbarkeit per Mutation belegt (3 von 3 rot). Wurzel bestaetigt: Platypus reicht NULL statt der Adresse durch, wenn ein Nicht-Ref an einen typisierten Pointer-Param geht -- belegt via Segfault bei git_libgit2_version. Signaturbewusster Scan ueber alle 522 FFI-Callsites in t/: zusaetzlicher vakuoeser Test in t/13-tag.t:70 (git_reference_create arg0 ist git_reference**) im selben Zug gefixt. Zwei weitere Fundstellen brauchen eine Semantikentscheidung -> #12, #13. prove -lr t/ gruen (5231 Tests). Changes vom Hauptagenten. Nicht committed.
