@@ -1,0 +1,19 @@
+---
+claimed_at: 2026-08-10T21:43:23Z
+claimed_by: libgit2-worker
+class: standard
+completed: 2026-08-10
+created: 2026-08-10T19:27:45Z
+id: 8
+priority: low
+started: 2026-08-10
+status: done
+tags:
+- constants
+- api
+title: Export GIT_OID_RAWSZ / GIT_OID_HEXSZ via @EXPORT_OK
+updated: 2026-08-10T22:21:35Z
+---
+
+Both constants are defined in Git::Libgit2 (used internally by oid_from_hex / oid_to_hex) but are absent from @EXPORT_OK, so consumers cannot import them — unlike GIT_OID_MINPREFIXLEN, which was added to @EXPORT_OK. Consumers sizing their own git_oid buffers currently redeclare 20 / 40 locally, which is the exact drift risk the constant groups were exported to remove. Decide whether both join @EXPORT_OK, add value assertions in t/26-constants.t, and update the =head1 EXPORTS wording accordingly. Surfaced by libgit2-worker during review of the lookup_prefix/opts/constants change; deliberately left out of that change as scope expansion.
+Umgesetzt: GIT_OID_RAWSZ/GIT_OID_HEXSZ in @EXPORT_OK (damit automatisch in :all, einziger Tag), Wert-Assertions + HEXSZ==RAWSZ*2 Cross-Check + by-name Import-Test in t/26-constants.t, EXPORTS-POD nachgezogen. prove -lr t/ gruen. Changes-Eintrag vom Hauptagenten geschrieben. Nicht committed.
