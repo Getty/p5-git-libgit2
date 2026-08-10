@@ -1,0 +1,16 @@
+---
+class: standard
+completed: 2026-08-10
+created: 2026-08-10T17:09:34Z
+id: 6
+priority: high
+status: done
+tags:
+- ffi
+- config
+title: Bind git_libgit2_opts + GIT_OPT_SET_SEARCH_PATH + GIT_CONFIG_LEVEL_*
+updated: 2026-08-10T19:33:37Z
+---
+
+Variadic attach of git_libgit2_opts for (int, string) form. Export GIT_OPT_SET_SEARCH_PATH=5 and GIT_CONFIG_LEVEL_* constants. Smoke test t/25-opts.t. DONE.
+Implemented and committed in 8288815. Review caught two gaps, both fixed before commit: the GIT_CONFIG_LEVEL_* / GIT_OPT_SET_SEARCH_PATH values had no assertion anywhere (t/25-opts.t stays green on a wrong value — mutation-tested and confirmed), and the POD claimed this binding serves GIT_OPT_SET_TEMPLATE_PATH, which takes one vararg, not two; following it would have made libgit2 va_arg the int level as a char pointer. Both corrected.
