@@ -1,6 +1,6 @@
 Revision history for Git-Libgit2
 
-{{$NEXT}}
+0.006     2026-08-11 03:38:31Z
   - Bind git_object_lookup_prefix for abbreviated-OID lookups. Export
     GIT_OID_MINPREFIXLEN (4). The len argument counts hex characters
     (nibbles), not raw bytes.
