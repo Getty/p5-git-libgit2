@@ -74,6 +74,17 @@ ok lives { Git::Libgit2->import(qw( GIT_OID_RAWSZ GIT_OID_HEXSZ )) },
 # git_libgit2_opts() would just act on some other option and still return 0.
 is GIT_OPT_SET_SEARCH_PATH, 5, 'GIT_OPT_SET_SEARCH_PATH (6th member of git_libgit2_opt_t)';
 
+# Same enum, same trap, and here it bites harder: t/28-server-timeout.t proves
+# SET_SERVER_TIMEOUT works by making a read time out, but SET_SERVER_CONNECT_TIMEOUT
+# has no such witness -- a wrong value would quietly configure some neighbouring
+# option (40 is GET_SERVER_CONNECT_TIMEOUT, whose vararg is a pointer) instead.
+# Positions counted from include/git2/common.h; both members were appended in
+# libgit2 1.8, so nothing before them can shift.
+is GIT_OPT_SET_SERVER_CONNECT_TIMEOUT, 39,
+  'GIT_OPT_SET_SERVER_CONNECT_TIMEOUT (40th member of git_libgit2_opt_t)';
+is GIT_OPT_SET_SERVER_TIMEOUT, 41,
+  'GIT_OPT_SET_SERVER_TIMEOUT (42nd member of git_libgit2_opt_t)';
+
 # git_config_level_t (include/git2/config.h). Same trap: libgit2 accepts every
 # level in 1..6 for GIT_OPT_SET_SEARCH_PATH and returns 0, so t/25-opts.t stays
 # green even if a level is off by one — while a consumer would blank the wrong

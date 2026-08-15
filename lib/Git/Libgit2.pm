@@ -33,6 +33,8 @@ our @EXPORT_OK = qw(
   GIT_OID_MINPREFIXLEN
 
   GIT_OPT_SET_SEARCH_PATH
+  GIT_OPT_SET_SERVER_CONNECT_TIMEOUT
+  GIT_OPT_SET_SERVER_TIMEOUT
   GIT_CONFIG_LEVEL_PROGRAMDATA
   GIT_CONFIG_LEVEL_SYSTEM
   GIT_CONFIG_LEVEL_XDG
@@ -123,10 +125,23 @@ use constant {
   GIT_OID_HEXSZ        => 40,
   GIT_OID_MINPREFIXLEN => 4,
 
-  # git_libgit2_opt_t (include/git2/common.h). Only SET_SEARCH_PATH is
-  # exported for now — the variadic git_libgit2_opts binding covers just the
-  # (int, string) form. Add siblings on demand.
+  # git_libgit2_opt_t (include/git2/common.h). Unnumbered enum, so every value
+  # is positional — only options whose vararg shape one of the two
+  # git_libgit2_opts bindings can express are exported. Add siblings on demand.
   GIT_OPT_SET_SEARCH_PATH => 5,
+
+  # opts(GIT_OPT_SET_SERVER_CONNECT_TIMEOUT, int timeout_in_milliseconds) and
+  # opts(GIT_OPT_SET_SERVER_TIMEOUT, int timeout_in_milliseconds): how long
+  # libgit2 waits to establish a connection to a remote, and how long it waits
+  # on any single read from or write to one. Both default to 0, which means no
+  # limit at all — a peer that accepts the connection and then says nothing
+  # hangs the process forever, and no callback fires in the meantime.
+  #
+  # Both were appended to the enum in libgit2 1.8; against an older library
+  # these are simply out of range and git_libgit2_opts returns -1 ("invalid
+  # option") without acting.
+  GIT_OPT_SET_SERVER_CONNECT_TIMEOUT => 39,
+  GIT_OPT_SET_SERVER_TIMEOUT         => 41,
 
   # git_config_level_t (include/git2/config.h).
   GIT_CONFIG_LEVEL_PROGRAMDATA => 1,
@@ -420,8 +435,9 @@ Constants, by group: object type (C<GIT_OBJECT_*>), repository init
 (C<GIT_OID_RAWSZ>, C<GIT_OID_HEXSZ>, C<GIT_OID_MINPREFIXLEN>), error codes
 (C<GIT_OK>, C<GIT_ERROR>, the
 C<GIT_E*> family plus C<GIT_PASSTHROUGH>, C<GIT_ITEROVER>, C<GIT_RETRY>,
-C<GIT_TIMEOUT>), the C<git_libgit2_opts> option and config levels
-(C<GIT_OPT_SET_SEARCH_PATH>, C<GIT_CONFIG_LEVEL_*>,
+C<GIT_TIMEOUT>), the C<git_libgit2_opts> options and config levels
+(C<GIT_OPT_SET_SEARCH_PATH>, C<GIT_OPT_SET_SERVER_CONNECT_TIMEOUT>,
+C<GIT_OPT_SET_SERVER_TIMEOUT>, C<GIT_CONFIG_LEVEL_*>,
 C<GIT_CONFIG_HIGHEST_LEVEL>), revwalk sort (C<GIT_SORT_*>), remote
 direction (C<GIT_DIRECTION_*>), branch type (C<GIT_BRANCH_*>), tree entry
 filemode (C<GIT_FILEMODE_*>) and status flags (C<GIT_STATUS_*>).

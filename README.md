@@ -194,7 +194,7 @@ signatures, out-parameters and `*_free` pairings live. `*_options_init` is
 always the non-deprecated spelling — libgit2 1.7 removed the `*_init_options`
 variants.
 
-**Library init / shutdown** — `git_libgit2_init`, `git_libgit2_shutdown`, `git_libgit2_version`, `git_libgit2_opts`
+**Library init / shutdown** — `git_libgit2_init`, `git_libgit2_shutdown`, `git_libgit2_version`, `git_libgit2_opts` (attached a second time as `git_libgit2_opts_int`: the C function is variadic, so one binding serves one vararg shape — `(int, string)` for `GIT_OPT_SET_SEARCH_PATH`, `(int, int)` for the millisecond network timeouts, which are libgit2 1.8 and newer)
 
 **Error** — `git_error_last`, `git_error_clear`
 

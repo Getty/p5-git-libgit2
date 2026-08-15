@@ -1,6 +1,16 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - git_libgit2_opts_int: a second binding of git_libgit2_opts for its
+    (int, int) vararg shape, plus the constants it exists for,
+    GIT_OPT_SET_SERVER_CONNECT_TIMEOUT and GIT_OPT_SET_SERVER_TIMEOUT
+    (libgit2 1.8+, milliseconds, 0 = no limit). Without them libgit2's
+    network reads have no bound at all: a peer that completes the TCP
+    handshake and then stays silent blocks the calling thread forever, with
+    no callback in between, and the one attached vararg shape -- (int,
+    string) -- could not carry an int value. The GET_* counterparts stay
+    unbound: their vararg is an out pointer, and FFI::Platypus 2.11
+    segfaults on a pointer type in a variadic argument list.
   - fetch_options_prune_offset: probe where `prune` sits inside
     git_fetch_options in the libgit2 this process is actually linked
     against, instead of leaving consumers to compile the offset in. The

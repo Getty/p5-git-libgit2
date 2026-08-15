@@ -89,16 +89,26 @@ sub _attach_all {
   _attach git_libgit2_version  => [ 'int*', 'int*', 'int*' ]  => 'int';
 
   # git_libgit2_opts is variadic (int option, ...). FFI::Platypus requires the
-  # variable-argument types to be fixed at attach time, so this single function
-  # object serves exactly the two-vararg (int, string) form — i.e. only
-  # GIT_OPT_SET_SEARCH_PATH. Every option with a different vararg signature
-  # needs its own function object via $ffi->function(...) at the call site;
-  # that explicitly includes the one-string options such as
-  # GIT_OPT_SET_TEMPLATE_PATH, not just obviously different ones like
-  # SET_MWINDOW_SIZE (size_t). A mismatched argument list is not reported as
-  # a return code — libgit2 va_arg's whatever is on the stack. Not wrapped via
-  # _attach because the helper takes one args array, not a fixed/var split.
+  # variable-argument types to be fixed at attach time, so one function object
+  # serves exactly one vararg shape. Two are bound here, under two Perl names:
+  # the (int, string) form — i.e. only GIT_OPT_SET_SEARCH_PATH — and the
+  # (int, int) form, which covers the millisecond timeouts
+  # GIT_OPT_SET_SERVER_CONNECT_TIMEOUT and GIT_OPT_SET_SERVER_TIMEOUT (and the
+  # int-valued switches such as GIT_OPT_ENABLE_CACHING). Every option whose
+  # varargs match neither still needs its own function object via
+  # $ffi->function(...) at the call site; that explicitly includes the
+  # one-string options such as GIT_OPT_SET_TEMPLATE_PATH, not just obviously
+  # different ones like SET_MWINDOW_SIZE (size_t). A mismatched argument list
+  # is not reported as a return code — libgit2 va_arg's whatever is on the
+  # stack. Not wrapped via _attach because the helper takes one args array,
+  # not a fixed/var split.
+  #
+  # The GET_* counterparts are deliberately absent: their vararg is an out
+  # pointer, and FFI::Platypus 2.11 segfaults on a pointer type in a variadic
+  # argument list (`int*` here), rather than returning a value.
   $ffi->attach( 'git_libgit2_opts' => [ 'int' ] => [ 'int', 'string' ] => 'int' );
+  $ffi->attach( [ 'git_libgit2_opts' => 'git_libgit2_opts_int' ]
+      => [ 'int' ] => [ 'int', 'int' ] => 'int' );
 
   # ========================
   # Error
@@ -558,7 +568,29 @@ C<opts(GIT_OPT_SET_TEMPLATE_PATH, const char *path)>, one vararg, not two —
 as much as the obviously different ones like C<SET_MWINDOW_SIZE> (a
 C<size_t>). A mismatched argument list is B<not> reported back as an error
 code: libgit2 C<va_arg>s whatever sits on the stack, so a surplus leading
-C<int> would be consumed as the C<const char *> and dereferenced.
+C<int> would be consumed as the C<const char *> and dereferenced. The
+C<(int, int)> shape has its own binding, C<git_libgit2_opts_int>.
+
+=func git_libgit2_opts_int
+
+    Git::Libgit2::FFI::git_libgit2_opts_int(GIT_OPT_SET_SERVER_TIMEOUT, 30_000);
+
+The same C function as C<git_libgit2_opts>, attached under a second name for
+the C<(int, int)> vararg shape — one C<int> option followed by one C<int>
+value. It covers the two network timeouts, C<GIT_OPT_SET_SERVER_CONNECT_TIMEOUT>
+and C<GIT_OPT_SET_SERVER_TIMEOUT> (both in milliseconds, both C<0> for no
+limit at all), and the C<int>-valued switches such as
+C<GIT_OPT_ENABLE_CACHING>. Returns C<0> on success.
+
+The two timeouts arrived in libgit2 1.8. Against an older library their
+option values are past the end of the enum, and libgit2 answers C<-1>
+("invalid option") rather than acting — worth checking, because the default
+of no limit means a remote that accepts the connection and then stops talking
+blocks the calling thread indefinitely, with no callback in between.
+
+The matching C<GIT_OPT_GET_*> options are not reachable from Perl at all:
+their vararg is an out pointer, and FFI::Platypus 2.11 segfaults when a
+pointer type appears in a variadic argument list.
 
 =head1 ERROR
 
