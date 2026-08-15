@@ -17,6 +17,7 @@ our @EXPORT_OK = qw(
   check_rc
   oid_from_hex
   oid_to_hex
+  fetch_options_prune_offset
 
   GIT_OBJECT_ANY
   GIT_OBJECT_INVALID
@@ -102,6 +103,9 @@ our @EXPORT_OK = qw(
   GIT_EAPPLYFAIL
   GIT_EOWNER
   GIT_TIMEOUT
+  GIT_EUNCHANGED
+  GIT_ENOTSUPPORTED
+  GIT_EREADONLY
 );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
@@ -208,6 +212,9 @@ use constant {
   GIT_EAPPLYFAIL      => -35,
   GIT_EOWNER          => -36,
   GIT_TIMEOUT         => -37,
+  GIT_EUNCHANGED      => -38,
+  GIT_ENOTSUPPORTED   => -39,
+  GIT_EREADONLY       => -40,
 };
 
 my $initialised = 0;
@@ -321,6 +328,58 @@ Convert a C<git_oid> pointer into its 40-character hex string (wraps
 C<git_oid_tostr>).
 
 =cut
+
+my $FETCH_OPTIONS_PRUNE_OFFSET;
+
+sub fetch_options_prune_offset {
+  return $FETCH_OPTIONS_PRUNE_OFFSET if defined $FETCH_OPTIONS_PRUNE_OFFSET;
+
+  # git_fetch_options is { int version; git_remote_callbacks callbacks;
+  # git_fetch_prune_t prune; unsigned int update_fetchhead; ... }. The embedded
+  # callbacks struct gained fields between releases -- 120 bytes in 1.5, 128 in
+  # 1.9 -- so prune moves with it, and a hardcoded offset does not fail loudly:
+  # it writes the prune value into whichever callback pointer took its place.
+  #
+  # git_fetch_options_init fills the struct with libgit2's own defaults, which
+  # give us a marker to find: everything in callbacks past its version field is
+  # a NULL pointer, prune is GIT_FETCH_PRUNE_UNSPECIFIED (0), and the field
+  # directly behind it, update_fetchhead, is GIT_REMOTE_UPDATE_FETCHHEAD (1).
+  # So the first non-zero int past the callbacks version field is
+  # update_fetchhead, and prune is the int in front of it.
+  my $size = 512;
+  my $buf  = "\0" x $size;
+  my $ptr  = _scalar_ptr($buf);
+  check_rc( Git::Libgit2::FFI::git_fetch_options_init( $ptr, 1 ) );  # 1 = GIT_FETCH_OPTIONS_VERSION
+
+  for ( my $off = 16 ; $off + 4 <= $size ; $off += 4 ) {
+    next unless unpack( 'l', substr( $buf, $off, 4 ) ) == 1;
+    return $FETCH_OPTIONS_PRUNE_OFFSET = $off - 4;
+  }
+
+  Carp::croak 'cannot locate git_fetch_options.prune: libgit2 '
+    . version()
+    . ' left update_fetchhead unset after git_fetch_options_init';
+}
+
+=func fetch_options_prune_offset
+
+    my $offset = fetch_options_prune_offset();
+
+Return the byte offset of C<prune> within C<git_fetch_options>, probed from the
+libgit2 this process is linked against and cached after the first call.
+
+C<prune> sits directly behind the embedded C<git_remote_callbacks> struct, and
+that struct is not layout-stable across libgit2 releases: it was 120 bytes in
+1.5 and is 128 in 1.9. Writing the prune value at a compiled-in offset is
+therefore not merely wrong but silently dangerous — under 1.9 the stale 1.5
+offset lands on C<update_refs>, a function pointer that libgit2 prefers over
+C<update_tips> and will call.
+
+Dies if libgit2 leaves C<update_fetchhead> unset, because without that marker
+the offset cannot be established and guessing it would corrupt the struct.
+
+=cut
+
 
 # Get a raw pointer to a Perl scalar's bytes (for passing as 'opaque').
 sub _scalar_ptr {
