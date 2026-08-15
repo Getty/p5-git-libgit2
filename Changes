@@ -10,6 +10,23 @@ Revision history for Git-Libgit2
     libgit2 prefers over `update_tips` and calls.
   - Complete the error-code mirror through the end of the C enum:
     GIT_EUNCHANGED (-38), GIT_ENOTSUPPORTED (-39), GIT_EREADONLY (-40).
+  - Document git_fetch_options_init and git_push_options_init, the only two
+    bound functions that had no POD. List fetch_options_prune_offset under
+    EXPORTS, where it was missing since it was added.
+  - Fix the SYNOPSIS: `printf "libgit2 %s\n", version()` called version() in
+    list context, printing just the major number plus a redundant-argument
+    warning. Now `scalar version()`.
+  - Group headings in Git::Libgit2::FFI are =head1, not =head2. They used to
+    sit at the same level as the 236 function entries, which left the
+    generated table of contents unable to tell a group from a function.
+  - README: state the situation instead of implying it. cpanm Git::Libgit2
+    does not work yet (Alien::Libgit2 is not on CPAN) and now says so with
+    build-from-source steps; the layer stack down from App::karr is spelled
+    out; the runtime struct-layout hazard has its own section; TODO.md is
+    linked as the record of what is deliberately unbound. The function list
+    covers all 236 bindings (34 were missing, among them the whole
+    git_object_* and git_oid_* families) and no longer claims a
+    git_conflicts_next, which never existed.
 
 0.006     2026-08-11 03:38:31Z
   - Bind git_object_lookup_prefix for abbreviated-OID lookups. Export

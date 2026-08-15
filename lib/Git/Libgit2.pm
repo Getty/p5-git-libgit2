@@ -394,7 +394,7 @@ sub _scalar_ptr {
   use Git::Libgit2 qw( init_lib version check_rc );
 
   init_lib();
-  printf "libgit2 %s\n", version();
+  printf "libgit2 %s\n", scalar version();   # list context would give (1, 9, 0)
 
   # Direct FFI calls live in Git::Libgit2::FFI
   use Git::Libgit2::FFI;
@@ -413,7 +413,7 @@ for an idiomatic Moo wrapper with RAII handle management.
 
 Nothing is exported by default. Functions available on request:
 C<init_lib>, C<shutdown_lib>, C<version>, C<check_rc>, C<oid_from_hex>,
-C<oid_to_hex>.
+C<oid_to_hex>, C<fetch_options_prune_offset>.
 
 Constants, by group: object type (C<GIT_OBJECT_*>), repository init
 (C<GIT_REPOSITORY_INIT_BARE>), OID sizes and the abbreviated-OID minimum

@@ -114,7 +114,7 @@ use overload
 
 =synopsis
 
-  my $rc = git_repository_open(\my $repo, $path);
+  my $rc = Git::Libgit2::FFI::git_repository_open(\my $repo, $path);
   if ($rc < 0) {
     die Git::Libgit2::Error->last($rc);   # stringifies
   }

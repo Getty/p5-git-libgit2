@@ -16,6 +16,15 @@ Bound against **libgit2 1.5.1**. Re-check signatures against the installed
 headers (`/usr/include/git2/*.h`) before implementing — Alien::Libgit2 may
 ship a different point release.
 
+That warning has already come due once: `git_fetch_options` embeds
+`git_remote_callbacks`, which grew from 120 bytes in 1.5 to 128 in 1.9, so
+every field behind it moved. Function *signatures* are stable across 1.x;
+struct *layouts* are not. Where a binding has to reach a field inside a
+versioned struct, probe the offset at runtime instead of compiling one in —
+`Git::Libgit2::fetch_options_prune_offset` is the worked example, and it
+explains in its POD why a wrong offset there corrupts silently rather than
+returning an error code.
+
 ---
 
 ## How to add a binding (recap of the house pattern)
