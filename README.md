@@ -36,8 +36,9 @@ reach a libgit2 function nobody wrapped yet, you want this one.
   attr/ignore, pathspec, mailmap).
 - **libgit2 1.5 is the floor.** All 236 bindings exist in 1.5.1, so
   `Alien::Libgit2` takes any system libgit2 from 1.5 up (pkg-config) and builds
-  its bundled 1.9.3 otherwise. The test suite runs against 1.5.1 (CI, Debian
-  bookworm, perl 5.36/5.38/5.40) and 1.9.0.
+  its bundled 1.9.3 otherwise. CI covers both paths and prints which one a job
+  took: 1.5.1 on perl 5.36/5.38/5.40 (Debian bookworm), the bundled 1.9.3
+  share build, and 1.9.4 from Homebrew on macOS.
 - Function signatures are stable across libgit2 1.x. Struct layouts are not —
   see [below](#struct-layout-is-not-stable-across-libgit2-releases).
 - On CPAN, along with the layers either side of it:
