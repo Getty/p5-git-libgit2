@@ -19,13 +19,12 @@ Revision history for Git-Libgit2
   - Group headings in Git::Libgit2::FFI are =head1, not =head2. They used to
     sit at the same level as the 236 function entries, which left the
     generated table of contents unable to tell a group from a function.
-  - README: state the situation instead of implying it. cpanm Git::Libgit2
-    does not work yet (Alien::Libgit2 is not on CPAN) and now says so with
-    build-from-source steps; the layer stack down from App::karr is spelled
-    out; the runtime struct-layout hazard has its own section; TODO.md is
-    linked as the record of what is deliberately unbound. The function list
-    covers all 236 bindings (34 were missing, among them the whole
-    git_object_* and git_oid_* families) and no longer claims a
+  - README: state the situation instead of implying it. The layer stack down
+    from App::karr is spelled out, so it is clear which questions this layer
+    declines to answer; the runtime struct-layout hazard has its own section;
+    TODO.md is linked as the record of what is deliberately unbound. The
+    function list covers all 236 bindings (34 were missing, among them the
+    whole git_object_* and git_oid_* families) and no longer claims a
     git_conflicts_next, which never existed.
 
 0.006     2026-08-11 03:38:31Z

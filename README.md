@@ -1,7 +1,7 @@
 # Git::Libgit2
 
 Low-level [FFI::Platypus](https://metacpan.org/pod/FFI::Platypus) bindings to
-[libgit2](https://libgit2.org/), via [Alien::Libgit2](https://github.com/Getty/p5-alien-libgit2).
+[libgit2](https://libgit2.org/), via [Alien::Libgit2](https://metacpan.org/pod/Alien::Libgit2).
 
 ## Where this sits
 
@@ -20,7 +20,7 @@ Perl subs and stops there: opaque handles stay opaque, return codes stay return
 codes, and nothing is freed on your behalf. Every design question that has more
 than one defensible answer — object model, exception classes, when a handle
 dies — is answered one layer up, in
-[Git::Native](https://github.com/Getty/p5-git-native).
+[Git::Native](https://metacpan.org/pod/Git::Native).
 
 If you want to *use* git from Perl, you probably want that one. If you want to
 reach a libgit2 function nobody wrapped yet, you want this one.
@@ -36,8 +36,9 @@ reach a libgit2 function nobody wrapped yet, you want this one.
   attr/ignore, pathspec, mailmap).
 - Signatures were catalogued against **libgit2 1.5.1**; the test suite runs
   against 1.5.1 (CI, Debian bookworm, perl 5.36/5.38/5.40) and 1.9.0.
-- **`Alien::Libgit2` is not on CPAN yet**, so neither is this. See
-  [Installation](#installation).
+- On CPAN, along with the layers either side of it:
+  [Alien::Libgit2](https://metacpan.org/pod/Alien::Libgit2) and
+  [Git::Native](https://metacpan.org/pod/Git::Native).
 
 ## Synopsis
 
@@ -99,7 +100,7 @@ recognised before `check_rc` sees them.
 Every `*_new` / `*_lookup` / `*_create` call must be matched with its
 corresponding `*_free`. The bindings hand out raw pointers and do not track
 them; there is no RAII here.
-[Git::Native](https://github.com/Getty/p5-git-native) does this with Moo
+[Git::Native](https://metacpan.org/pod/Git::Native) does this with Moo
 `DESTROY`, which is the reason it exists.
 
 ### OID buffers
@@ -145,25 +146,20 @@ same rather than hardcode a number.
 
 ## Installation
 
-Once `Alien::Libgit2` reaches CPAN this becomes:
-
 ```bash
 cpanm Git::Libgit2
 ```
 
-Until then both have to come from source, in this order:
+`Alien::Libgit2` comes along as a dependency. It uses a system libgit2 when it
+finds one (`libgit2-dev` on Debian, `libgit2` on Homebrew) and builds its own
+otherwise. No compiler is needed for *this* distribution either way — it is
+pure Perl plus FFI.
+
+From a git checkout:
 
 ```bash
-git clone https://github.com/Getty/p5-alien-libgit2 && cd p5-alien-libgit2
-cpanm --installdeps . && cpanm .
-
-git clone https://github.com/Getty/p5-git-libgit2 && cd p5-git-libgit2
 cpanm --installdeps . && prove -lr t/
 ```
-
-`Alien::Libgit2` uses a system libgit2 when it finds one (`libgit2-dev` on
-Debian, `libgit2` on Homebrew) and builds its own otherwise. No compiler is
-needed for *this* distribution either way — it is pure Perl plus FFI.
 
 ## Helpers
 
@@ -281,9 +277,9 @@ init/shutdown in a loop to catch reference-count drift.
 
 ## See also
 
-- [Git::Native](https://github.com/Getty/p5-git-native) — the layer you
+- [Git::Native](https://metacpan.org/pod/Git::Native) — the layer you
   probably want: Moo objects, RAII, typed exceptions
-- [Alien::Libgit2](https://github.com/Getty/p5-alien-libgit2) — finds or builds
+- [Alien::Libgit2](https://metacpan.org/pod/Alien::Libgit2) — finds or builds
   the shared library
 - [FFI::Platypus](https://metacpan.org/pod/FFI::Platypus) — the FFI engine
 - [libgit2 API reference](https://libgit2.org/docs/reference/main/) — the
