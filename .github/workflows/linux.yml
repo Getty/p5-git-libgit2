@@ -7,6 +7,8 @@ on:
       - '*'
   pull_request:
 jobs:
+  # Alien::Libgit2 handed a system libgit2 by pkg-config. On bookworm that is
+  # 1.5.1, which is the floor this distribution supports.
   debian:
     runs-on: ubuntu-latest
     strategy:
@@ -22,12 +24,6 @@ jobs:
       image: perl:${{ matrix.perl-version }}-${{ matrix.codename }}
     steps:
       - uses: actions/checkout@v4
-      # Alien::Libgit2 is not on CPAN yet — install from sibling repo.
-      - name: Checkout Alien::Libgit2
-        uses: actions/checkout@v4
-        with:
-          repository: getty/p5-alien-libgit2
-          path: vendor/alien-libgit2
       - name: Fix safe.directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: perl -V
@@ -41,15 +37,53 @@ jobs:
         env:
           PERL_CPANM_OPT: --mirror http://cpan.metacpan.org --mirror-only
         run: cpanm -nq Dist::Zilla
-      - name: Install Alien::Libgit2 from sibling repo
-        working-directory: vendor/alien-libgit2
+      - name: Install Alien::Libgit2
         env:
           PERL_CPANM_OPT: --mirror http://cpan.metacpan.org --mirror-only
-        shell: bash
+          # Fail loudly rather than quietly building the bundled copy if
+          # pkg-config cannot see the libgit2 installed above.
+          ALIEN_INSTALL_TYPE: system
+        run: cpanm -nq Alien::Libgit2
+      - name: Report the libgit2 under test
         run: |
-          set -euo pipefail
-          dzil authordeps --missing | cpanm -nq
-          dzil listdeps --author --missing | cpanm -nq
-          dzil install
+          perl -MAlien::Libgit2 -e 'printf "install_type=%s version=%s\n",
+            Alien::Libgit2->install_type, Alien::Libgit2->version // q(?)'
+      - name: dzil test
+        uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@main
+
+  # The Alien::Libgit2 share build — its bundled libgit2 1.9.3, which is what a
+  # user without a system libgit2 ends up linking against. Pinned by
+  # ALIEN_INSTALL_TYPE rather than by withholding libgit2-dev, so the job cannot
+  # quietly fall back to the system path if the image ever ships libgit2.
+  bundled:
+    runs-on: ubuntu-latest
+    container:
+      image: perl:5.40-bookworm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix safe.directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: perl -V
+        run: perl -V
+      - name: Install build prerequisites
+        # cmake arrives via Alien::cmake3, so only libgit2's own build deps are
+        # needed here: OpenSSL for USE_HTTPS, libssh2 for USE_SSH.
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            pkg-config git libssl-dev libssh2-1-dev zlib1g-dev
+      - name: Install Dist::Zilla
+        env:
+          PERL_CPANM_OPT: --mirror http://cpan.metacpan.org --mirror-only
+        run: cpanm -nq Dist::Zilla
+      - name: Install Alien::Libgit2 (share build)
+        env:
+          PERL_CPANM_OPT: --mirror http://cpan.metacpan.org --mirror-only
+          ALIEN_INSTALL_TYPE: share
+        run: cpanm -nq Alien::Libgit2
+      - name: Report the libgit2 under test
+        run: |
+          perl -MAlien::Libgit2 -e 'printf "install_type=%s version=%s\n",
+            Alien::Libgit2->install_type, Alien::Libgit2->version // q(?)'
       - name: dzil test
         uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@main

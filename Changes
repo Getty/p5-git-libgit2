@@ -19,6 +19,12 @@ Revision history for Git-Libgit2
   - Group headings in Git::Libgit2::FFI are =head1, not =head2. They used to
     sit at the same level as the 236 function entries, which left the
     generated table of contents unable to tell a group from a function.
+  - CI installs Alien::Libgit2 from CPAN rather than checking out the sibling
+    repo, so it exercises the install path users actually take. Both paths are
+    now pinned with ALIEN_INSTALL_TYPE instead of left to whatever pkg-config
+    happens to find, and a new linux job covers the share build (Alien's
+    bundled libgit2 1.9.3) that a user without a system libgit2 gets. Each job
+    reports the install type and libgit2 version it linked against.
   - README: state the situation instead of implying it. The layer stack down
     from App::karr is spelled out, so it is clear which questions this layer
     declines to answer; the runtime struct-layout hazard has its own section;
