@@ -34,8 +34,12 @@ reach a libgit2 function nobody wrapped yet, you want this one.
   release: diff text output, index conflicts, config iteration, …) and Group C
   (whole subsystems: blame, describe, submodule, worktree, notes, apply,
   attr/ignore, pathspec, mailmap).
-- Signatures were catalogued against **libgit2 1.5.1**; the test suite runs
-  against 1.5.1 (CI, Debian bookworm, perl 5.36/5.38/5.40) and 1.9.0.
+- **libgit2 1.5 is the floor.** All 236 bindings exist in 1.5.1, so
+  `Alien::Libgit2` takes any system libgit2 from 1.5 up (pkg-config) and builds
+  its bundled 1.9.3 otherwise. The test suite runs against 1.5.1 (CI, Debian
+  bookworm, perl 5.36/5.38/5.40) and 1.9.0.
+- Function signatures are stable across libgit2 1.x. Struct layouts are not —
+  see [below](#struct-layout-is-not-stable-across-libgit2-releases).
 - On CPAN, along with the layers either side of it:
   [Alien::Libgit2](https://metacpan.org/pod/Alien::Libgit2) and
   [Git::Native](https://metacpan.org/pod/Git::Native).
