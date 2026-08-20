@@ -6,8 +6,8 @@ allowed-tools: Read, Bash, Glob, Grep
 briefing:
   skills:
     - libgit2-core
-    - perl-core
-    - perl-release-author-getty
+    - getty-perl-core
+    - getty-perl-release-author-getty
     - perl-release-dist-ini
 ---
 

@@ -6,7 +6,7 @@ allowed-tools: Read, Edit, Write, Bash, Glob, Grep
 briefing:
   skills:
     - libgit2-core
-    - perl-core
+    - getty-perl-core
 ---
 
 You are the `libgit2-worker` for **Git::Libgit2**.

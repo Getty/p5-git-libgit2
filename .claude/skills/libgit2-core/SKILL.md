@@ -1,6 +1,6 @@
 ---
 name: libgit2-core
-description: "Architecture + binding patterns for the Git::Libgit2 distribution — what FFI::Platypus surface looks like, opaque-handle ownership, Error wrapper, the test isolation contract."
+description: Load before editing Git::Libgit2 — the FFI::Platypus surface, opaque-handle ownership, the Error wrapper, the test isolation contract.
 metadata:
   type: project
 ---
