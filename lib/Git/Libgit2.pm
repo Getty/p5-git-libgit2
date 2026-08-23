@@ -137,7 +137,8 @@ use constant {
   # limit at all — a peer that accepts the connection and then says nothing
   # hangs the process forever, and no callback fires in the meantime.
   #
-  # Both were appended to the enum in libgit2 1.8; against an older library
+  # Both were appended to the enum in libgit2 1.8, and the ssh transport
+  # ignored the server timeout until 1.9.3; against an older library
   # these are simply out of range and git_libgit2_opts returns -1 ("invalid
   # option") without acting.
   GIT_OPT_SET_SERVER_CONNECT_TIMEOUT => 39,

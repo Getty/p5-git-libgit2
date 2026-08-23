@@ -3,6 +3,7 @@ use Git::Libgit2 qw(
   init_lib
   GIT_OK GIT_ERROR GIT_ENOTFOUND GIT_EEXISTS GIT_EAUTH GIT_ECERTIFICATE
   GIT_ENONFASTFORWARD GIT_EINVALIDSPEC GIT_TIMEOUT
+  GIT_EUNCHANGED GIT_ENOTSUPPORTED GIT_EREADONLY
 );
 use Git::Libgit2::FFI ();
 
@@ -20,6 +21,9 @@ is GIT_EINVALIDSPEC,   -12, 'GIT_EINVALIDSPEC';
 is GIT_EAUTH,          -16, 'GIT_EAUTH';
 is GIT_ECERTIFICATE,   -17, 'GIT_ECERTIFICATE';
 is GIT_TIMEOUT,        -37, 'GIT_TIMEOUT';
+is GIT_EUNCHANGED,     -38, 'GIT_EUNCHANGED';
+is GIT_ENOTSUPPORTED,  -39, 'GIT_ENOTSUPPORTED';
+is GIT_EREADONLY,      -40, 'GIT_EREADONLY';
 
 # Git::Libgit2::Error->last decodes a real error's klass (no longer hardwired
 # to 0). Opening a non-existent repo yields GIT_ENOTFOUND with a non-zero

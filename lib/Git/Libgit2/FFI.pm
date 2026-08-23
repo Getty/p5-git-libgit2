@@ -582,7 +582,8 @@ and C<GIT_OPT_SET_SERVER_TIMEOUT> (both in milliseconds, both C<0> for no
 limit at all), and the C<int>-valued switches such as
 C<GIT_OPT_ENABLE_CACHING>. Returns C<0> on success.
 
-The two timeouts arrived in libgit2 1.8. Against an older library their
+The two timeouts arrived in libgit2 1.8, though the ssh transport ignored
+C<GIT_OPT_SET_SERVER_TIMEOUT> until 1.9.3. Against an older library their
 option values are past the end of the enum, and libgit2 answers C<-1>
 ("invalid option") rather than acting — worth checking, because the default
 of no limit means a remote that accepts the connection and then stops talking

@@ -1,6 +1,13 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - cpanfile: Path::Tiny was missing from the test prereqs. 22 of the 30
+    test files load it and it is not core, so a smoker without it already
+    installed failed at `make test`. Predates this release.
+  - t/03-error.t: pin GIT_EUNCHANGED (-38), GIT_ENOTSUPPORTED (-39) and
+    GIT_EREADONLY (-40). The file stopped at GIT_TIMEOUT (-37), the old
+    end of the enum, leaving the three codes this release adds exported
+    but unasserted.
   - git_libgit2_opts_int: a second binding of git_libgit2_opts for its
     (int, int) vararg shape, plus the constants it exists for,
     GIT_OPT_SET_SERVER_CONNECT_TIMEOUT and GIT_OPT_SET_SERVER_TIMEOUT
