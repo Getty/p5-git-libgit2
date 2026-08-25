@@ -1,0 +1,24 @@
+---
+class: standard
+completed: 2026-08-25T14:01:17Z
+created: 2026-08-23T15:48:39Z
+id: 15
+priority: medium
+started: 2026-08-25T14:01:17Z
+status: done
+tags:
+- ci
+- tests
+title: t/28-server-timeout.t has never run on CI
+updated: 2026-08-25T14:01:22Z
+---
+
+The file arrived with 8611bfc, which is after a2a729a — the last commit that reports CI results. So no CI run has ever executed it.
+
+It is the riskiest file in the suite to leave unobserved: it forks, opens a real listen socket and carries a 20 second deadline (t/28-server-timeout.t:17 skips on MSWin32, :41 handles a missing listen socket, :21 skip_all when libgit2 lacks the server timeout options). Defensive, but untested on the actual runners.
+
+On the Debian bookworm jobs (libgit2 1.5.1) it skip_alls with "libgit2 1.5 has no server timeout options (need 1.8)", so those jobs prove nothing about it either. The macOS runner (1.9.4 from Homebrew) is where it would really execute — and that one is unobserved.
+
+Action: push HEAD and see CI green before releasing 0.007. Note that the fork + socket + deadline combination is exactly what tends to be flaky on shared runners.
+
+Pushed 8927dec and watched run 32856284214: t/28-server-timeout.t executed for real on the macOS runner (libgit2 1.9.4) and passed; linux green as well.
