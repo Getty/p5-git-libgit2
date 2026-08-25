@@ -1,6 +1,13 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - New cert_hostkey_offsets: byte offsets of git_cert_hostkey's type,
+    hash_sha1 and hash_sha256 fields, for reading host key hashes from
+    the certificate handed to a certificate_check callback. Derived from
+    the ABI's int size - the struct is padding-free up to the end of
+    hash_sha256 and, unlike git_fetch_options.prune, nothing in it moves
+    between libgit2 releases. Lets Git::Native drop its compiled-in
+    copies of the same three numbers (its karr #30).
   - Fix t/11-revwalk.t failing on perl >= 5.41 (GH #1, reported against
     every release since 0.004; reproduced on 5.42.3). The fixture
     helpers returned scalar_to_buffer pointers to sub-local buffers, and

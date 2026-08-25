@@ -18,6 +18,7 @@ our @EXPORT_OK = qw(
   oid_from_hex
   oid_to_hex
   fetch_options_prune_offset
+  cert_hostkey_offsets
 
   GIT_OBJECT_ANY
   GIT_OBJECT_INVALID
@@ -345,6 +346,37 @@ C<git_oid_tostr>).
 
 =cut
 
+sub cert_hostkey_offsets {
+  # git_cert_hostkey is { git_cert parent; git_cert_ssh_t type; unsigned
+  # char hash_md5[16]; hash_sha1[20]; hash_sha256[32]; ... }. git_cert is
+  # a lone enum, git_cert_ssh_t is an enum, and enums are int-sized on
+  # every ABI libgit2 supports; the hash fields are char arrays with no
+  # alignment demands of their own. The layout up to the end of
+  # hash_sha256 is therefore padding-free and follows from sizeof(int)
+  # alone -- unlike git_fetch_options.prune there is nothing here that
+  # moves between libgit2 releases, and libgit2 has no
+  # git_cert_hostkey_init that would give a marker to probe for.
+  # Cross-checked against the real offsetof() by Git::Native's
+  # t/75-cert-hostkey-layout.t wherever a C compiler is available.
+  my $int = Git::Libgit2::FFI::ffi()->sizeof('int');
+  return (
+    type   => $int,
+    sha1   => $int + $int + 16,
+    sha256 => $int + $int + 16 + 20,
+  );
+}
+
+=func cert_hostkey_offsets
+
+    my %off = cert_hostkey_offsets();   # type => 4, sha1 => 24, sha256 => 44
+
+Byte offsets of the C<type>, C<hash_sha1> and C<hash_sha256> fields inside
+C<git_cert_hostkey>, for reading the host key hashes out of the certificate
+handed to a C<certificate_check> callback. Derived from the ABI's C<int>
+size — the struct is padding-free up to the end of C<hash_sha256>.
+
+=cut
+
 my $FETCH_OPTIONS_PRUNE_OFFSET;
 
 sub fetch_options_prune_offset {
@@ -429,7 +461,7 @@ for an idiomatic Moo wrapper with RAII handle management.
 
 Nothing is exported by default. Functions available on request:
 C<init_lib>, C<shutdown_lib>, C<version>, C<check_rc>, C<oid_from_hex>,
-C<oid_to_hex>, C<fetch_options_prune_offset>.
+C<oid_to_hex>, C<fetch_options_prune_offset>, C<cert_hostkey_offsets>.
 
 Constants, by group: object type (C<GIT_OBJECT_*>), repository init
 (C<GIT_REPOSITORY_INIT_BARE>), OID sizes and the abbreviated-OID minimum
