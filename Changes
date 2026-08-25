@@ -1,6 +1,20 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - Fix t/11-revwalk.t failing on perl >= 5.41 (GH #1, reported against
+    every release since 0.004; reproduced on 5.42.3). The fixture
+    helpers returned scalar_to_buffer pointers to sub-local buffers, and
+    the "pre-allocated at outer scope" commit buffers were parameter
+    copies, so those pointers only stayed valid through copy-on-write
+    buffer sharing. perl commit 06e421c559 (perl5#22704, in 5.41) gives
+    constant-folded strings the COW flag, scalar_to_buffer then un-COWs
+    them into a fresh buffer, and the shared-buffer coincidence the test
+    leaned on was gone: the recorded c3 hex was stale memory and the b3
+    walk "returned the wrong commit". t/11, t/12 and t/13 now pass OIDs
+    between scopes as their 20-byte strings and take every pointer
+    freshly in the scope that uses it; t/24 already did. No library
+    change - oid_from_hex/oid_to_hex handle COW correctly, verified on
+    5.42.3, and the full suite passes there.
   - cpanfile: require Alien::Libgit2 0.002, which raises the libgit2
     floor to 1.9.3. Below that an ssh peer that accepts the connection
     and then stays silent hangs the transport unboundedly (libgit2 PR

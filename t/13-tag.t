@@ -13,22 +13,25 @@ my $tmp = Path::Tiny->tempdir;
 my $repo;
 check_rc Git::Libgit2::FFI::git_repository_init( \$repo, "$tmp", 0 );
 
-# Pre-allocate buffers for commits
-my @commit_bufs = map { "\0" x 20 } 1 .. 4;
+# OIDs travel between scopes as their 20-byte strings; a scalar_to_buffer
+# pointer is taken freshly in every scope that needs one and never outlives
+# its scalar. See t/11-revwalk.t for the perl 5.41 copy-on-write change
+# (perl5 06e421c559) that made the old pointer-returning helpers fail.
 
-# Helper to create a blob - returns the pointer (from scalar_to_buffer)
+# Helper to create a blob - returns the raw OID as a 20-byte string
 sub make_blob {
   my ($content) = @_;
   my $buf = "\0" x 20;
   my ($ptr) = scalar_to_buffer($buf);
   my ($content_ptr) = scalar_to_buffer($content);
   check_rc Git::Libgit2::FFI::git_blob_create_from_buffer($ptr, $repo, $content_ptr, length($content));
-  return $ptr;
+  return $buf;
 }
 
-# Helper to create a tree - returns the pointer (from scalar_to_buffer)
+# Helper to create a tree with one blob entry, raw OID string in and out
 sub make_tree {
-  my ($blob_oid_ptr, $filename) = @_;
+  my ($blob_oid, $filename) = @_;
+  my ($blob_oid_ptr) = scalar_to_buffer($blob_oid);
   my $tb;
   check_rc Git::Libgit2::FFI::git_treebuilder_new( \$tb, $repo, undef );
   check_rc Git::Libgit2::FFI::git_treebuilder_insert( \my $entry, $tb, $filename, $blob_oid_ptr, 0100644 );
@@ -36,41 +39,48 @@ sub make_tree {
   my ($tree_oid_ptr) = scalar_to_buffer($tree_oid_buf);
   check_rc Git::Libgit2::FFI::git_treebuilder_write( $tree_oid_ptr, $tb );
   Git::Libgit2::FFI::git_treebuilder_free($tb);
-  return $tree_oid_ptr;
+  return $tree_oid_buf;
 }
 
-# Helper to create a commit - returns the pointer (from scalar_to_buffer)
+# Helper to create a commit on a branch, returning its raw OID string
 sub make_commit {
-  my ($branch_name, $msg, $blob_oid_ptr, $filename, $time_offset, $commit_buf) = @_;
-  my $tree_oid_ptr = make_tree($blob_oid_ptr, $filename);
+  my ($branch_name, $msg, $blob_oid, $filename, $time_offset) = @_;
+  my $tree_oid = make_tree($blob_oid, $filename);
+  my ($tree_oid_ptr) = scalar_to_buffer($tree_oid);
   my $tree;
   check_rc Git::Libgit2::FFI::git_tree_lookup( \$tree, $repo, $tree_oid_ptr );
   my $sig;
   check_rc Git::Libgit2::FFI::git_signature_new( \$sig, 'Test', 'test@example.invalid', 1715000000 + $time_offset, 0 );
-  my ($commit_oid_ptr) = scalar_to_buffer($commit_buf);
+  my $commit_oid_buf = "\0" x 20;
+  my ($commit_oid_ptr) = scalar_to_buffer($commit_oid_buf);
   check_rc Git::Libgit2::FFI::git_commit_create(
     $commit_oid_ptr, $repo, "refs/heads/$branch_name", $sig, $sig,
     'UTF-8', $msg, $tree, 0, undef,
   );
   Git::Libgit2::FFI::git_tree_free($tree);
   Git::Libgit2::FFI::git_signature_free($sig);
-  return $commit_oid_ptr;
+  return $commit_oid_buf;
+}
+
+# Helper: hex of a raw OID string, pointer taken and used in one scope
+sub hex_of {
+  my ($oid) = @_;
+  my ($ptr) = scalar_to_buffer($oid);
+  return oid_to_hex($ptr);
 }
 
 # Create commits to tag
-my $b1_buf = make_blob("msg1\n");
-my $c1_buf = make_commit( 'b1', 'first commit',  $b1_buf, 'msg1.txt', 1, $commit_bufs[0] );
+my $c1_oid = make_commit( 'b1', 'first commit',  make_blob("msg1\n"), 'msg1.txt', 1 );
+my $c2_oid = make_commit( 'b2', 'second commit', make_blob("msg2\n"), 'msg2.txt', 2 );
 
-my $b2_buf = make_blob("msg2\n");
-my $c2_buf = make_commit( 'b2', 'second commit', $b2_buf, 'msg2.txt', 2, $commit_bufs[1] );
-
-my $c1_hex = oid_to_hex($c1_buf);
-my $c2_hex = oid_to_hex($c2_buf);
+my $c1_hex = hex_of($c1_oid);
+my $c2_hex = hex_of($c2_oid);
 
 # --- git_reference_create (lightweight tag) ---
 my $tag1_created;
+my ($c1_ptr) = scalar_to_buffer($c1_oid);
 check_rc Git::Libgit2::FFI::git_reference_create(
-  \$tag1_created, $repo, 'refs/tags/v1.0-lightweight', $c1_buf, 0, 'lightweight tag',
+  \$tag1_created, $repo, 'refs/tags/v1.0-lightweight', $c1_ptr, 0, 'lightweight tag',
 );
 is(
   oid_to_hex( Git::Libgit2::FFI::git_reference_target($tag1_created) ),
@@ -132,7 +142,8 @@ Git::Libgit2::FFI::git_tag_free($tag2_obj);
 #     caller-allocated buffer, so the binding must use 'opaque' not
 #     'opaque*' — this is the path Git::Native's tag_create takes) ---
 my $c1_obj;
-check_rc Git::Libgit2::FFI::git_object_lookup( \$c1_obj, $repo, $c1_buf, -2 );  # GIT_OBJECT_ANY
+my ($c1_lookup_ptr) = scalar_to_buffer($c1_oid);
+check_rc Git::Libgit2::FFI::git_object_lookup( \$c1_obj, $repo, $c1_lookup_ptr, -2 );  # GIT_OBJECT_ANY
 my $tag3_buf_raw = "\0" x 20;
 my ($tag3_buf) = scalar_to_buffer($tag3_buf_raw);
 check_rc Git::Libgit2::FFI::git_tag_create(

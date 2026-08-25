@@ -13,22 +13,25 @@ my $tmp = Path::Tiny->tempdir;
 my $repo;
 check_rc Git::Libgit2::FFI::git_repository_init( \$repo, "$tmp", 0 );
 
-# Pre-allocate buffers for commits
-my @commit_bufs = map { "\0" x 20 } 1 .. 4;
+# OIDs travel between scopes as their 20-byte strings; a scalar_to_buffer
+# pointer is taken freshly in every scope that needs one and never outlives
+# its scalar. See t/11-revwalk.t for the perl 5.41 copy-on-write change
+# (perl5 06e421c559) that made the old pointer-returning helpers fail.
 
-# Helper to create a blob
+# Helper to create a blob - returns the raw OID as a 20-byte string
 sub make_blob_oid {
   my ($content) = @_;
   my $buf = "\0" x 20;
   my ($ptr) = scalar_to_buffer($buf);
   my ($content_ptr) = scalar_to_buffer($content);
   check_rc Git::Libgit2::FFI::git_blob_create_from_buffer($ptr, $repo, $content_ptr, length($content));
-  return $ptr;
+  return $buf;
 }
 
-# Helper to create a tree
+# Helper to create a tree with one blob entry, raw OID string in and out
 sub make_tree_oid {
-  my ($blob_oid_ptr, $filename) = @_;
+  my ($blob_oid, $filename) = @_;
+  my ($blob_oid_ptr) = scalar_to_buffer($blob_oid);
   my $tb;
   check_rc Git::Libgit2::FFI::git_treebuilder_new(\$tb, $repo, undef);
   check_rc Git::Libgit2::FFI::git_treebuilder_insert(\my $entry, $tb, $filename, $blob_oid_ptr, 0100644);
@@ -36,44 +39,41 @@ sub make_tree_oid {
   my ($tree_oid_ptr) = scalar_to_buffer($tree_oid_buf);
   check_rc Git::Libgit2::FFI::git_treebuilder_write($tree_oid_ptr, $tb);
   Git::Libgit2::FFI::git_treebuilder_free($tb);
-  return $tree_oid_ptr;
+  return $tree_oid_buf;
 }
 
-# Helper to create a commit with a pre-allocated buffer
+# Helper to create a commit on a branch, returning its raw OID string
 sub make_commit_oid {
-  my ($branch_name, $msg, $blob_oid_ptr, $filename, $time_offset, $commit_buf) = @_;
-  my $tree_oid_ptr = make_tree_oid($blob_oid_ptr, $filename);
+  my ($branch_name, $msg, $blob_oid, $filename, $time_offset) = @_;
+  my $tree_oid = make_tree_oid($blob_oid, $filename);
+  my ($tree_oid_ptr) = scalar_to_buffer($tree_oid);
   my $tree;
   check_rc Git::Libgit2::FFI::git_tree_lookup(\$tree, $repo, $tree_oid_ptr);
   my $sig;
   check_rc Git::Libgit2::FFI::git_signature_new(\$sig, 'Test', 'test@example.invalid', 1715000000 + $time_offset, 0);
-  my ($commit_oid_ptr) = scalar_to_buffer($commit_buf);
+  my $commit_oid_buf = "\0" x 20;
+  my ($commit_oid_ptr) = scalar_to_buffer($commit_oid_buf);
   check_rc Git::Libgit2::FFI::git_commit_create(
     $commit_oid_ptr, $repo, "refs/heads/$branch_name", $sig, $sig,
     'UTF-8', $msg, $tree, 0, undef,
   );
   Git::Libgit2::FFI::git_tree_free($tree);
   Git::Libgit2::FFI::git_signature_free($sig);
-  return $commit_oid_ptr;
+  return $commit_oid_buf;
+}
+
+# Helper: hex of a raw OID string, pointer taken and used in one scope
+sub hex_of {
+  my ($oid) = @_;
+  my ($ptr) = scalar_to_buffer($oid);
+  return oid_to_hex($ptr);
 }
 
 # Create 4 commits on separate branches
-my $b1_oid = make_blob_oid("msg1\n");
-my $c1_oid = make_commit_oid('b1', 'first commit',  $b1_oid, 'msg1.txt', 1, $commit_bufs[0]);
-
-my $b2_oid = make_blob_oid("msg2\n");
-my $c2_oid = make_commit_oid('b2', 'second commit', $b2_oid, 'msg2.txt', 2, $commit_bufs[1]);
-
-my $b3_oid = make_blob_oid("msg3\n");
-my $c3_oid = make_commit_oid('b3', 'third commit',  $b3_oid, 'msg3.txt', 3, $commit_bufs[2]);
-
-my $b4_oid = make_blob_oid("msg4\n");
-my $c4_oid = make_commit_oid('b4', 'fourth commit', $b4_oid, 'msg4.txt', 4, $commit_bufs[3]);
-
-my $c1_hex = oid_to_hex($c1_oid);
-my $c2_hex = oid_to_hex($c2_oid);
-my $c3_hex = oid_to_hex($c3_oid);
-my $c4_hex = oid_to_hex($c4_oid);
+my $c1_hex = hex_of(make_commit_oid('b1', 'first commit',  make_blob_oid("msg1\n"), 'msg1.txt', 1));
+my $c2_hex = hex_of(make_commit_oid('b2', 'second commit', make_blob_oid("msg2\n"), 'msg2.txt', 2));
+my $c3_hex = hex_of(make_commit_oid('b3', 'third commit',  make_blob_oid("msg3\n"), 'msg3.txt', 3));
+my $c4_hex = hex_of(make_commit_oid('b4', 'fourth commit', make_blob_oid("msg4\n"), 'msg4.txt', 4));
 
 # --- git_branch_lookup ---
 my $branch;
