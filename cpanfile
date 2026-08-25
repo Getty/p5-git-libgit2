@@ -1,5 +1,5 @@
 requires 'perl'           => '5.020';
-requires 'Alien::Libgit2' => '0.001';
+requires 'Alien::Libgit2' => '0.002';
 requires 'Carp';
 requires 'Exporter';
 requires 'FFI::Platypus'  => '2.00';

@@ -1,6 +1,11 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - cpanfile: require Alien::Libgit2 0.002, which raises the libgit2
+    floor to 1.9.3. Below that an ssh peer that accepts the connection
+    and then stays silent hangs the transport unboundedly (libgit2 PR
+    #7165); the remote bindings here are how that loop is reached from
+    Perl. Alien::Libgit2 0.002 must ship before this release.
   - cpanfile: Path::Tiny was missing from the test prereqs. 22 of the 30
     test files load it and it is not core, so a smoker without it already
     installed failed at `make test`. Predates this release.
