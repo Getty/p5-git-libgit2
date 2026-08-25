@@ -1,112 +1,54 @@
 # Git::Libgit2
 
-Low-level FFI::Platypus bindings to libgit2, via L<Alien::Libgit2>.
+Low-level FFI::Platypus bindings to libgit2, via Alien::Libgit2. A 1:1 surface
+of the C API as Perl subs: opaque handles, return codes, manual `*_free`. No
+Moo, no RAII, no policy — that is `Git::Native`, one layer up.
 
-## What It Does
+```
+App::karr > Git::Native > Git::Libgit2 (here) > Alien::Libgit2 > libgit2
+```
 
-1:1 surface of libgit2's C API exposed as Perl subs. No Moo, no objects,
-no error-to-exception translation — that lives one layer up in
-`Git::Native`.
+## Sources of truth
 
-Opaque libgit2 handles are exposed as `opaque` pointers (FFI::Platypus
-type). Callers are responsible for matching every `*_new`/`*_lookup`
-with the corresponding `*_free`. The high-level `Git::Native` wrapper
-does this via Moo `DESTROY`.
+- `README.md` — the bound surface (all 236 functions, grouped), helpers,
+  lifetime and OID-buffer rules, the struct-layout warning. Keep its function
+  count and group lists in step with `_attach_all()`.
+- `lib/Git/Libgit2/FFI.pm` — every binding plus its `=func` POD; group
+  headings are `=head1`.
+- `TODO.md` — the unbound surface, Group B (wanted) and Group C (on demand),
+  with per-family FFI gotchas.
+- `Changes` `{{$NEXT}}` — every user-visible change, at the time it is made.
+- karr board (`karr list`) — open tickets; release blockers carry that tag.
 
-## Architecture
+## Non-negotiables
 
-- `Git::Libgit2` — top-level facade. `init_lib()`, `version()`, type
-  registry, exports a few helpers.
-- `Git::Libgit2::FFI` — internal `FFI::Platypus` instance with all the
-  `attach` calls. Singleton — one FFI per process.
-- `Git::Libgit2::Error` — wraps `git_error_last()`. Used by consumers
-  to turn libgit2 error codes into structured info; not thrown here.
+- `Git::Libgit2::FFI` is a process-wide singleton; all bindings attach there,
+  `Git::Libgit2` only re-exports helpers.
+- A `git_*` binding never throws. `check_rc` is the one explicit helper that
+  turns a negative rc into a thrown `Git::Libgit2::Error`; consumers opt in.
+- `*_options_init`, never `*_init_options` (gone in libgit2 1.7).
+- Struct offsets are probed at runtime (`fetch_options_prune_offset`), never
+  compiled in — layouts move between 1.x releases.
+- Every test isolates git config (`GIT_CONFIG_GLOBAL`/`GIT_CONFIG_SYSTEM` to
+  `/dev/null`) and pins `refs/heads/main` after init before committing.
+- `prove -lr t/` — the `-r` is load-bearing, plain `prove -l t/` skips
+  subdirectories silently.
 
-## Phase 1 MVP Cut (what App::karr needs)
+## Build / release
 
-`git_libgit2_init`/`_shutdown`, `git_repository_open_ext`/`_workdir`/`_free`,
-`git_config_open_default`, `git_reference_lookup`/`_create`/`_delete`/
-`_iterator_new`/`_next`/`_name`/`_target`,
-`git_oid_fromstr`/`_tostr`,
-`git_blob_create_from_buffer`/`_lookup`/`_rawcontent`/`_rawsize`/`_free`,
-`git_treebuilder_new`/`_insert`/`_write`/`_free`,
-`git_commit_create`/`_lookup`/`_tree`/`_message`/`_free`,
-`git_object_lookup`/`_free`,
-`git_reference_name_is_valid`,
-`git_remote_lookup`/`_url`,
-`git_error_last`.
-
-## Phase 5 General-purpose Surface
-
-Functions added past the karr MVP so this isn't karr-specific on CPAN:
-
-`git_clone`/`_options_init`,
-`git_revwalk_*` (new/push/push_head/push_ref/push_glob/push_range/hide*/next/sorting/reset/simplify_first_parent/free),
-`git_branch_create`/`_lookup`/`_delete`/`_iterator_new`/`_next`/`_iterator_free`/`_name`/`_is_head`/`_move`,
-`git_tag_create`/`_create_lightweight`/`_lookup`/`_delete`/`_list`/`_list_match`/`_target`/`_target_id`/`_message`/`_name`/`_tagger`/`_free`,
-`git_status_options_init`/`_foreach`/`_foreach_ext`/`_file`,
-`git_diff_options_init`/`_tree_to_tree`/`_tree_to_workdir`/`_tree_to_index`/`_index_to_workdir`/`_num_deltas`/`_get_delta`/`_free`,
-`git_repository_index`/`git_index_free`,
-`git_repository_set_head`,
-`git_strarray_free`.
-
-`*_options_init` is preferred over the deprecated `*_init_options` (the
-latter is removed in libgit2 1.7+).
-
-### Group A — accessor/predicate complements
-
-Obvious read-side complements to the existing surface (no new FFI patterns,
-all native-type returns):
-
-`git_repository_head`/`_head_unborn`/`_head_detached`,
-`git_reference_symbolic_create`/`_symbolic_target`/`_symbolic_set_target`/
-`_set_target`/`_resolve`/`_shorthand`/`_is_branch`/`_is_remote`/`_is_tag`,
-`git_commit_id`/`_time`/`_time_offset`/`_summary`.
-
-The remaining unbound surface (merge/diff-text/index-conflict/stash-iter/
-blame/describe/submodule/worktree/…) is catalogued in `TODO.md` with
-per-family FFI gotchas.
-
-## Phase 4 Network + Auth additions
-
-`git_remote_fetch`/`_push`/`_connect`/`_ls`/`_disconnect`/`_create`/`_create_anonymous`,
-`git_remote_init_callbacks`,
-`git_fetch_options_init`/`git_push_options_init`,
-`git_credential_userpass_plaintext_new`/`_ssh_key_new`/`_ssh_key_from_agent`/
-`_default_new`/`_username_new`/`_free`.
-
-The credential acquire callback type is registered as
-`(opaque, string, string, uint, opaque) -> int` — FFI::Platypus closures
-only allow native types, so the `git_credential **out` parameter is passed
-as a plain `opaque` (the pointer value). The closure writes the credential
-pointer into that address via `memcpy`.
-
-## Build
-
-- `[@Author::GETTY]` Dist::Zilla bundle.
-- Dep: `Alien::Libgit2` (must be released first).
-- No XS, no compiler needed at install — pure Perl + FFI.
-
-## Tests
-
-Each FFI function gets a smoke test in `t/`. Plus `t/torture-init.t`
-hammers init/shutdown in a loop. All tests run with
-`GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null` to avoid
-the Git::Raw bug of polluting the user's `~/.gitconfig`.
-
-Use `prove -lr t/` (recursive) — plain `prove -l t/` is NOT recursive and
-silently skips subdirectory tests.
+`[@Author::GETTY]` Dist::Zilla bundle; pure Perl + FFI, no compiler at
+install. `Alien::Libgit2` is the hard runtime dep and must be on CPAN at the
+pinned version before this releases.
 
 ## Delegation
 
-Delegate behavior-relevant code to the right agent instead of touching it
-yourself — principle and lane are in `.claude/rules/libgit2-rules.md`.
+Behaviour-relevant code goes to an agent, not the main context: the main
+agent scopes, delegates, reviews, and reports. Agents carry their skills via
+`briefing.skills` (`.claude/agents/`); skill sources live in `.claude/skills/`
+(shared ones are manage-skills hardlinks — edit via the library, not in
+place).
 
 | Task | Agent |
 |---|---|
-| Implement / refactor / debug behavior-relevant code | `libgit2-worker` (default) |
+| Implement / refactor / debug bindings or tests | `libgit2-worker` (default) |
 | Pre-release audit | `libgit2-release-checker` |
-
-The agents carry their skills via `briefing.skills` (see `.claude/agents/`);
-the main agent delegates rather than loading them. Skill sources live under
-`.claude/skills/`.

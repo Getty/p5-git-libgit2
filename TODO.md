@@ -40,7 +40,7 @@ All work happens in `lib/Git/Libgit2/FFI.pm`:
    `_attach_all()`. Use `_attach NAME => [ args ] => ret;`. Keep the
    2-space indent, no trailing commas, align the `=>` columns roughly with
    the neighbours.
-3. **Add a `=func NAME` POD block** in the corresponding `=head2` section
+3. **Add a `=func NAME` POD block** in the corresponding `=head1` section
    further down the file (POD order mirrors attach order). One usage line +
    one short paragraph. Mention the matching `*_free` and any out-param.
 4. **Add a smoke test** — either extend the relevant `t/NN-*.t` or add a new

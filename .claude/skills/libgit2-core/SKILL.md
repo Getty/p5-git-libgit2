@@ -47,7 +47,7 @@ All binding work happens in `lib/Git/Libgit2/FFI.pm`:
 2. **Add the `_attach` line** in the matching `# ====` section of `_attach_all()`.
    Use `_attach NAME => [ args ] => ret;`. Keep 2-space indent, no trailing
    commas, align the `=>` columns roughly with neighbours.
-3. **Add a `=func NAME` POD block** in the corresponding `=head2` section
+3. **Add a `=func NAME` POD block** in the corresponding `=head1` section
    further down (POD order mirrors attach order). One usage line + one short
    paragraph. Mention the matching `*_free` and any out-param.
 4. **Add a smoke test** in `t/NN-*.t`. Every test starts with gitconfig isolation
@@ -89,21 +89,10 @@ Plain `prove -l t/` is **not recursive** — it silently skips subdirectory test
 Use `prove -lr t/` or `dzil test` to run the whole suite. Reserve non-`-r`
 `prove -l` for an explicit single file.
 
-## Phase surface (what's bound)
+## Bound surface
 
-Already bound, against libgit2 1.5.1:
-
-- **Phase 1 MVP** — repo, config, ref, oid, blob, treebuilder, commit, object,
-  ref-name validation, remote lookup, error last.
-- **Phase 4** — clone, remote fetch/push/connect/ls/disconnect/create,
-  fetch/push options init, credential types (userpass/ssh_key/ssh_key_from_agent/
-  default/username), transport-certificate-check callback.
-- **Phase 5** — revwalk, branch, tag, status, diff, repository_index, set_head,
-  strarray.
-- **Group A** — `repository_head`/`head_unborn`/`head_detached`,
-  `reference_symbolic_*`/`set_target`/`resolve`/`shorthand`/`is_branch`/
-  `is_remote`/`is_tag`, `commit_id`/`time`/`time_offset`/`summary`.
-
+`README.md` § "Bound surface" is the authoritative, grouped list of every
+attached function (236 as of 0.007) and is kept in step with `_attach_all()`.
 Remaining surface is catalogued in `TODO.md` as **Group B** (high-value,
 complete-the-CPAN-release: callbacks + `git_buf` out-params) and **Group C**
 (blame / describe / submodule / worktree / notes / apply / attr / pathspec /
