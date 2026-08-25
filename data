@@ -1,0 +1,40 @@
+---
+claimed_at: 2026-08-24T04:43:54Z
+claimed_by: libgit2-worker
+class: standard
+completed: 2026-08-25T13:55:18Z
+created: 2026-08-23T18:49:49Z
+id: 16
+priority: high
+started: 2026-08-24T04:43:55Z
+status: done
+tags:
+- github
+- release-blocker
+title: 'GH #1: t/11-revwalk.t faellt ab perl 5.42 -- andk hat auf perl5 #22704 gebisected'
+updated: 2026-08-25T13:55:23Z
+---
+
+Gemeldet 2026-06-06 von andk, GitHub-Issue #1. Drei Kommentare, alle von ihm,
+keine Antwort von uns.
+
+  Failed test "push_ref (b3) returned correct commit"  (t/11-revwalk.t:114)
+    GOT   d04d242df2c1def7808729edb50a519dd8bfda7d
+    CHECK b62c4350f76757e12321b772eface7321ee515a9
+
+Verlauf: 2026-08-10 "Still happening with Git-Libgit2-0.005", am selben Tag
+der Bisect-Hinweis auf https://github.com/Perl/perl5/issues/22704, dann
+2026-08-11 "Still happening with Git-Libgit2-0.006". Er hat also zweimal
+nachgemessen und die Ursache im Perl-Core eingegrenzt -- echte Vorarbeit,
+die unbeantwortet liegt.
+
+Hier laeuft perl 5.40.1, deshalb ist der Fehler auf dieser Maschine unsichtbar
+und der Gesamt-Test uebersieht ihn.
+
+Vor dem 0.007-Tag zu entscheiden: fixen, oder bewusst mit Bekanntgabe
+releasen. Nicht stillschweigend taggen -- der Melder wartet seit Juni und
+hat zuletzt gegen 0.006 gegengeprueft.
+
+libgit2-worker: claimed; building perl 5.42 in scratchpad to reproduce GH #1 (perl5 #22704).
+
+Root cause: test-only COW lifetime bug, fixed in 8927dec; reproduced and verified green on perl 5.42.3 in a container, full suite 5259 PASS on 5.40.1 and 5.42.3. No library change needed.
