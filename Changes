@@ -1,6 +1,6 @@
 Revision history for Git-Libgit2
 
-{{$NEXT}}
+0.007     2026-08-30 14:06:50Z
   - New cert_hostkey_offsets: byte offsets of git_cert_hostkey's type,
     hash_sha1 and hash_sha256 fields, for reading host key hashes from
     the certificate handed to a certificate_check callback. Derived from
