@@ -2,7 +2,6 @@
 name: libgit2-worker
 description: "Default Git::Libgit2 worker — implement, refactor, debug, and test FFI bindings in this single CPAN distribution. Pre-loaded with the libgit2 binding architecture, FFI::Platypus gotchas, opaque-handle ownership, and the test isolation contract. Coordinate via karr. Leaves a commit-ready tree; never commits — commits belong to libgit2-release-manager."
 model: inherit
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep
 briefing:
   skills:
     - libgit2-core

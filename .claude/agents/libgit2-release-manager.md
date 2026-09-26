@@ -2,7 +2,6 @@
 name: libgit2-release-manager
 description: "Owns libgit2's commits and release readiness — cuts commits from the worker's commit-ready tree, writes commit messages and Changes entries, moves karr cards to done. Release audit: Git::Libgit2 before a CPAN release — cpanfile deps declared and pinned, dist.ini bundle config, version_finder, Changes/{{$NEXT}} covers user-visible diff, build clean, recursive prove green. Workers never commit; this agent does. Never pushes, tags or releases."
 model: sonnet
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep
 briefing:
   skills:
     - getty-git-commit-style
