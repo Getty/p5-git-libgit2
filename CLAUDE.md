@@ -51,4 +51,4 @@ place).
 | Task | Agent |
 |---|---|
 | Implement / refactor / debug bindings or tests | `libgit2-worker` (default) |
-| Pre-release audit | `libgit2-release-checker` |
+| Commits, `Changes`, card → done, pre-release audit | `libgit2-release-manager` |
