@@ -67,3 +67,7 @@ blib/
 Git-Libgit2-*/
 Git-Libgit2-*.tar.gz
 AGENTS.md
+
+# skilletor: committe Config + Ignore-Block
+!.claude/skilletor.json
+!.claude/.gitignore
