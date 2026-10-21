@@ -8,6 +8,8 @@
 !.claude/settings.local.json
 !.claude/agents/
 !.claude/agents/**
+!.claude/rules/
+!.claude/rules/**
 !.claude/skills/
 !.claude/skills/**
 !.claude/hooks/
@@ -71,3 +73,8 @@ AGENTS.md
 # skilletor: committe Config + Ignore-Block
 !.claude/skilletor.json
 !.claude/.gitignore
+# karr materialized task view -- never commit
+tasks/
+config.yml
+# Claude Code worktrees (claude --worktree / isolated agents) -- never commit
+/.claude/worktrees/

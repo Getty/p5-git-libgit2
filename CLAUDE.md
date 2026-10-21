@@ -43,10 +43,12 @@ pinned version before this releases.
 ## Delegation
 
 Behaviour-relevant code goes to an agent, not the main context: the main
-agent scopes, delegates, reviews, and reports. Agents carry their skills via
-`briefing.skills` (`.claude/agents/`); skill sources live in `.claude/skills/`
-(shared ones are manage-skills hardlinks — edit via the library, not in
-place).
+agent scopes, delegates, reviews, and reports. The principle and the lane
+boundaries are in `.claude/rules/libgit2-rules.md`. Agents carry their skills
+via `briefing.skills` (`.claude/agents/`); skill sources live in
+`.claude/skills/` — the shared ones are installed by skilletor from
+`Getty/skills`, `libgit2-core` is owned by this repo. Never edit an installed
+skill copy; change the source it comes from.
 
 | Task | Agent |
 |---|---|

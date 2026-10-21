@@ -1,0 +1,3 @@
+claude: true
+prompt: |
+  Drain the Git-Libgit2 karr board. Follow .claude/rules/libgit2-rules.md, delegate behaviour-relevant code to the libgit2-worker agent and release audits to libgit2-release-manager. Never release.

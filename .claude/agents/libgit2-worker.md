@@ -6,6 +6,8 @@ briefing:
   skills:
     - libgit2-core
     - getty-perl-core
+    - getty-perl-pod
+    - kanban-issues-karr-ticket
 ---
 
 You are the `libgit2-worker` for **Git::Libgit2**.

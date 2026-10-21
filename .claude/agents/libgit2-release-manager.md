@@ -9,6 +9,7 @@ briefing:
     - getty-perl-core
     - getty-perl-release-author-getty
     - perl-release-dist-ini
+    - kanban-issues-karr-ticket
 ---
 
 You are the `libgit2-release-manager` for **Git::Libgit2**. Conventions from
