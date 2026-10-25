@@ -43,7 +43,8 @@ pinned version before this releases.
 ## Delegation
 
 Behaviour-relevant code goes to an agent, not the main context: the main
-agent scopes, delegates, reviews, and reports. The principle and the lane
+agent scopes, delegates, reviews, and reports. The principle is the shared rule
+`getty-agent-delegation` (skilletor bundle `getty-cpan-dist@getty`); the lane
 boundaries are in `.claude/rules/libgit2-rules.md`. Agents carry their skills
 via `briefing.skills` (`.claude/agents/`); skill sources live in
 `.claude/skills/` — the shared ones are installed by skilletor from
