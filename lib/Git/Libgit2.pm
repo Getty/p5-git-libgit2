@@ -244,6 +244,8 @@ sub init_lib {
   return $rc;
 }
 
+=encoding utf8
+
 =func init_lib
 
     init_lib();

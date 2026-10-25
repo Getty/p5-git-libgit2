@@ -33,6 +33,8 @@ sub _decode {
   return ( $msg, $klass // 0 );
 }
 
+=encoding utf8
+
 =method last
 
     die Git::Libgit2::Error->last($rc);

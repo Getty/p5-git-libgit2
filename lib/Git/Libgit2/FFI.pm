@@ -62,6 +62,8 @@ sub ffi {
   return $ffi;
 }
 
+=encoding utf8
+
 =func ffi
 
     my $ffi = Git::Libgit2::FFI::ffi();

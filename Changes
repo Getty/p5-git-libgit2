@@ -19,6 +19,10 @@ Revision history for Git-Libgit2
     installing apt's libgit2-dev, whose 1.5.1 is below the Alien::Libgit2
     floor and made ALIEN_INSTALL_TYPE=system fail. README states 1.9.3 as
     the floor.
+  - POD: the modules declare =encoding utf8, so podchecker no longer
+    trips over the em dashes. New t/40-pod-source.t maps the house POD
+    shortcuts to standard POD the way the build does and requires all
+    three modules to pass podchecker.
 
 0.007     2026-08-30 14:06:50Z
   - New cert_hostkey_offsets: byte offsets of git_cert_hostkey's type,
