@@ -1,0 +1,40 @@
+---
+claimed_at: 2026-10-25T01:27:49Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T01:27:49Z
+created: 2026-10-06T19:42:26Z
+id: 17
+priority: high
+started: 2026-10-25T01:13:42Z
+status: done
+tags:
+- bug
+- ffi
+- memory
+- review-2026-10-06
+title: git_stash_save binds its git_oid* out-param as opaque* - libgit2 writes 20
+  bytes into an 8-byte slot
+updated: 2026-10-25T01:27:49Z
+---
+
+`lib/Git/Libgit2/FFI.pm:450`:
+
+    _attach git_stash_save => [ 'opaque*', 'git_repository', 'git_signature', 'string', 'uint' ] => 'int';
+
+The C signature (`git2/stash.h:72-77`, identical in the bundled 1.9.3 headers under the Alien::Libgit2 share dir) is
+
+    int git_stash_save(git_oid *out, git_repository *repo, const git_signature *stasher, const char *message, uint32_t flags);
+
+`out` is a caller-allocated 20-byte `git_oid`, exactly like in `git_commit_create`, `git_tag_create` or `git_rebase_commit`, which this file binds correctly as `'opaque'`. With `'opaque*'` FFI::Platypus hands libgit2 the address of one pointer-sized temporary; libgit2 writes the 20-byte stash commit id there - 12 bytes past its end - and Perl gets the first 8 bytes of a SHA-1 back as an "address".
+
+The POD (`FFI.pm:1914-1918`) compounds it: `git_stash_save(\my $stash, $repo, $sig, $msg, $flags)` - "Free with `git_object_free`". Following that calls `git_object_free` on eight hash bytes. `t/31-stash.t:50-53` asserts in the wrong direction (`ok( $stash, 'git_stash_save returned a non-NULL stash handle' )`), which is why the suite stays green.
+
+Same defect class as k13/k14 (cherrypick/revert out-param), mirrored.
+
+Done when: the binding is `[ 'opaque', ... ]`, the POD shows a 20-byte buffer plus `oid_to_hex` and drops the free advice, and `t/31-stash.t` asserts that the returned oid equals what `refs/stash` points at.
+
+---
+Fleet review 2026-10-06 · kind: bug · confidence: verified
+
+Commit ee1a9be. Rot belegt: t/31-stash.t gegen altes lib schlug fehl (rc=-1, refs/stash nicht angelegt). Also found: (1) k21-Wortlaut nennt git_graph_new/git_graph_free, die es weder in FFI.pm noch in libgit2 gibt - git_graph_* nehmen das Repo direkt. (2) TODO.md Z.3/15 sagt noch 'libgit2 1.5.1' (Floor ist 1.9.3). (3) Der libgit2-Tarball im Debian-CI-Job (k20) ist per GitHub-Archiv-URL geladen, ohne Hash-Pin; der Abgleich laeuft ueber pkg-config-Versionspruefung.
