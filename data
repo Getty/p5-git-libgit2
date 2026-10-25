@@ -1,0 +1,62 @@
+---
+claimed_at: 2026-10-25T01:28:06Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T01:28:06Z
+created: 2026-10-21T04:14:49Z
+id: 20
+priority: high
+started: 2026-10-25T01:13:59Z
+status: done
+tags:
+- ci
+- deps
+- docs
+title: The linux debian job installs a system libgit2 that Alien::Libgit2 0.002 refuses
+  - ALIEN_INSTALL_TYPE=system fails at the floor 1.9.3
+updated: 2026-10-25T01:28:06Z
+---
+
+`.github/workflows/linux.yml`, job `debian`:
+
+    apt-get install -y --no-recommends libgit2-dev pkg-config git
+    ...
+    env:
+      ALIEN_INSTALL_TYPE: system
+    run: cpanm -nq Alien::Libgit2
+
+The comment above the matrix still reads: "Alien::Libgit2 handed a system libgit2 by
+pkg-config. On bookworm that is 1.5.1, which is the floor this distribution supports."
+
+That floor moved. `cpanfile` requires `Alien::Libgit2 0.002`, and 0.002 raised the
+system-libgit2 floor from 1.5 to 1.9.3 (Alien::Libgit2 0.002, Changes: "Raise the
+system-libgit2 floor from 1.5 to 1.9.3 ... A system lib below the fix now falls through
+to the bundled 1.9.3 share build."). Debian bookworm ships libgit2 1.5.1, so pkg-config
+reports a version the Alien refuses.
+
+`ALIEN_INSTALL_TYPE=system` does not fall back - it fails. Alien::Libgit2 0.002, POD
+"Forcing an install path": "C<system> uses only a system libgit2 and fails if none meets
+the floor". Bookworm's 1.5.1 does not meet 1.9.3, so the `debian` job cannot get past
+`cpanm -nq Alien::Libgit2` - for all three perl versions of the matrix.
+
+Alien::Libgit2 hit the same wall and fixed it in its own CI (0.002, Changes): "the linux
+system-libgit2 job installs the bundled 1.9.3 into /usr/local instead of apt's
+libgit2-dev. No Debian release reaches the floor (bookworm 1.5.1, trixie 1.9.0), so
+since the raise that job had been falling through to a share build with none of the share
+build's prerequisites installed." Copy that recipe here.
+
+The `bundled` job (perl 5.40-bookworm, `ALIEN_INSTALL_TYPE: share`) and the macOS job
+(Homebrew 1.9.4) are unaffected.
+
+`README.md` states the same stale floor and belongs to the same fix:
+- line 37: "**libgit2 1.5 is the floor.** All 236 bindings exist in 1.5.1."
+- line 40: "prints which one a job took: 1.5.1 on perl 5.36/5.38/5.40 (Debian bookworm),
+  the bundled 1.9.3 share build, and 1.9.4 from Homebrew on macOS."
+
+Done when: the `debian` job installs a libgit2 >= 1.9.3 the way Alien::Libgit2's CI does,
+the job comment names the real floor, and README states 1.9.3 instead of 1.5.
+
+---
+Hausstandard 2026-10-21 · kind: ci · confidence: verified
+
+Commit 160634b. Debian-Job baut libgit2 1.9.3 nach /usr/local (Rezept der Alien::Libgit2-CI), prueft pkg-config, ALIEN_INSTALL_TYPE=system bleibt. Entscheidung: Quelle ist das GitHub-Release-Archiv v1.9.3 (der Alien-Tarball liegt nur in dessen Repo), ohne Hash-Pin - nicht offline verifizierbar. Workflow nur als YAML geparst, nicht in CI gelaufen.
