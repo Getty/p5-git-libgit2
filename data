@@ -1,0 +1,44 @@
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":15,"ts":"2026-08-23T15:48:39Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":16,"ts":"2026-08-23T18:49:49Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"backlog","task_id":16,"ts":"2026-08-24T04:43:47Z"}
+{"action":"move","agent":"libgit2-worker","detail":"in-progress","task_id":16,"ts":"2026-08-24T04:43:55Z"}
+{"action":"move","agent":"libgit2-worker","detail":"done","task_id":16,"ts":"2026-08-25T13:55:18Z"}
+{"action":"edit","agent":"libgit2-worker","detail":"done","task_id":16,"ts":"2026-08-25T13:55:23Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"done","task_id":15,"ts":"2026-08-25T14:01:17Z"}
+{"action":"edit","agent":"Torsten Raudssus","detail":"done","task_id":15,"ts":"2026-08-25T14:01:22Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":17,"ts":"2026-10-06T19:42:26Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":18,"ts":"2026-10-06T19:42:31Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":19,"ts":"2026-10-06T19:42:36Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":20,"ts":"2026-10-21T04:14:49Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":21,"ts":"2026-10-21T04:15:02Z"}
+{"action":"create","agent":"Torsten Raudssus","detail":"backlog","task_id":22,"ts":"2026-10-21T04:15:09Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"todo","task_id":17,"ts":"2026-10-25T01:13:42Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"todo","task_id":18,"ts":"2026-10-25T01:13:47Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"todo","task_id":19,"ts":"2026-10-25T01:13:53Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"todo","task_id":20,"ts":"2026-10-25T01:13:59Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"todo","task_id":21,"ts":"2026-10-25T01:14:05Z"}
+{"action":"move","agent":"Torsten Raudssus","detail":"todo","task_id":22,"ts":"2026-10-25T01:14:11Z"}
+{"action":"move","agent":"offen-2610","detail":"in-progress","task_id":17,"ts":"2026-10-25T01:15:23Z"}
+{"action":"move","agent":"offen-2610","detail":"in-progress","task_id":18,"ts":"2026-10-25T01:15:27Z"}
+{"action":"move","agent":"offen-2610","detail":"in-progress","task_id":19,"ts":"2026-10-25T01:15:32Z"}
+{"action":"move","agent":"offen-2610","detail":"in-progress","task_id":20,"ts":"2026-10-25T01:15:37Z"}
+{"action":"move","agent":"offen-2610","detail":"in-progress","task_id":21,"ts":"2026-10-25T01:15:42Z"}
+{"action":"move","agent":"offen-2610","detail":"in-progress","task_id":22,"ts":"2026-10-25T01:15:46Z"}
+{"action":"edit","agent":"offen-2610","detail":"in-progress","task_id":17,"ts":"2026-10-25T01:25:32Z"}
+{"action":"edit","agent":"offen-2610","detail":"in-progress","task_id":18,"ts":"2026-10-25T01:25:37Z"}
+{"action":"edit","agent":"offen-2610","detail":"in-progress","task_id":19,"ts":"2026-10-25T01:25:43Z"}
+{"action":"edit","agent":"offen-2610","detail":"in-progress","task_id":20,"ts":"2026-10-25T01:25:48Z"}
+{"action":"edit","agent":"offen-2610","detail":"in-progress","task_id":21,"ts":"2026-10-25T01:25:52Z"}
+{"action":"edit","agent":"offen-2610","detail":"in-progress","task_id":22,"ts":"2026-10-25T01:26:05Z"}
+{"action":"move","agent":"offen-2610","detail":"review","task_id":17,"ts":"2026-10-25T01:26:13Z"}
+{"action":"move","agent":"offen-2610","detail":"review","task_id":18,"ts":"2026-10-25T01:26:18Z"}
+{"action":"move","agent":"offen-2610","detail":"review","task_id":19,"ts":"2026-10-25T01:26:23Z"}
+{"action":"move","agent":"offen-2610","detail":"review","task_id":20,"ts":"2026-10-25T01:26:28Z"}
+{"action":"move","agent":"offen-2610","detail":"review","task_id":21,"ts":"2026-10-25T01:26:33Z"}
+{"action":"move","agent":"offen-2610","detail":"review","task_id":22,"ts":"2026-10-25T01:26:38Z"}
+{"action":"move","agent":"offen-2610","detail":"done","task_id":17,"ts":"2026-10-25T01:27:49Z"}
+{"action":"move","agent":"offen-2610","detail":"done","task_id":18,"ts":"2026-10-25T01:27:55Z"}
+{"action":"move","agent":"offen-2610","detail":"done","task_id":19,"ts":"2026-10-25T01:28:00Z"}
+{"action":"move","agent":"offen-2610","detail":"done","task_id":20,"ts":"2026-10-25T01:28:06Z"}
+{"action":"move","agent":"offen-2610","detail":"done","task_id":21,"ts":"2026-10-25T01:28:11Z"}
+{"action":"move","agent":"offen-2610","detail":"done","task_id":22,"ts":"2026-10-25T01:28:17Z"}
