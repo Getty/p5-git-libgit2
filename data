@@ -1,0 +1,35 @@
+---
+claimed_at: 2026-10-25T01:28:00Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T01:28:00Z
+created: 2026-10-06T19:42:36Z
+id: 19
+priority: low
+started: 2026-10-25T01:13:53Z
+status: done
+tags:
+- bug
+- ffi
+- tests
+- review-2026-10-06
+title: git_merge_base_many and git_merge_analysis pass a size_t count as uint, and
+  neither is tested
+updated: 2026-10-25T01:28:00Z
+---
+
+`lib/Git/Libgit2/FFI.pm:435-436`:
+
+    _attach git_merge_base_many => [ 'opaque', 'git_repository', 'uint', 'opaque' ] => 'int';
+    _attach git_merge_analysis  => [ 'uint*', 'uint*', 'git_repository', 'opaque', 'uint' ] => 'int';
+
+Both counts are `size_t` in C (`git2/merge.h:478-482` `size_t length`; `git2/merge.h:412-417` `size_t their_heads_len`). On x86_64 a 32-bit argument happens to arrive zero-extended, so it works there; on an ABI that does not guarantee the upper half of the slot, libgit2 reads a garbage count and walks off the array. Every other `size_t` parameter in this file is declared `'size_t'`.
+
+Neither function is called anywhere under `t/` (`t/30-merge.t` covers `git_merge_base` only), so these two bindings have never executed.
+
+Done when: both use `'size_t'`, and `t/30-merge.t` exercises `git_merge_base_many` (three tips) and `git_merge_analysis` (a fast-forward and an up-to-date case).
+
+---
+Fleet review 2026-10-06 · kind: bug · confidence: verified
+
+Commit 5b02a99. Kein roter Test auf x86_64 moeglich: uint wird dort zero-extended, die alten Bindungen laufen mit dem neuen Test identisch (die Bindungen waren bisher nur nie ausgefuehrt). t/30-merge.t deckt jetzt beide ab (3-Tip-Merge-Base, Fast-Forward, Up-to-date). Der Fix wirkt nur auf ABIs ohne Zero-Extension.
