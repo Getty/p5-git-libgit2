@@ -6,6 +6,10 @@ Revision history for Git-Libgit2
     libgit2 a pointer-sized temporary, so the 20-byte stash commit id
     overran it and the caller got eight hash bytes back as an "address".
     The POD now shows the buffer plus oid_to_hex.
+  - git_odb_new is bound with its real C signature, one out-param and no
+    repository. It creates an empty object database without backends;
+    the POD says so and points at git_repository_odb for the ODB of an
+    open repository. New t/35-odb.t covers git_odb_exists on both.
 
 0.007     2026-08-30 14:06:50Z
   - New cert_hostkey_offsets: byte offsets of git_cert_hostkey's type,

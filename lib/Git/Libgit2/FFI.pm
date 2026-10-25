@@ -502,7 +502,7 @@ sub _attach_all {
   # ODB
   # ========================
 
-  _attach git_odb_new    => [ 'opaque*', 'git_repository' ]                                          => 'int';
+  _attach git_odb_new    => [ 'opaque*' ]                                                            => 'int';
   _attach git_odb_exists => [ 'git_odb', 'opaque' ]                                                  => 'int';
   _attach git_odb_free   => [ 'git_odb' ]                                                            => 'void';
 }
@@ -2132,9 +2132,12 @@ Initialize revert options struct.
 
 =func git_odb_new
 
-    Git::Libgit2::FFI::git_odb_new(\my $odb, $repo);
+    Git::Libgit2::FFI::git_odb_new(\my $odb);
 
-Create a new ODB wrapper. Free with C<git_odb_free>.
+Create a new, empty object database with B<no backends> — it takes no
+repository and knows no objects until you add backends yourself.
+C<git_odb_exists> on it answers false for everything. To get the ODB of an
+open repository use C<git_repository_odb>. Free with C<git_odb_free>.
 
 =func git_odb_exists
 
