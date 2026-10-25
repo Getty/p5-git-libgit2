@@ -1,0 +1,52 @@
+---
+claimed_at: 2026-10-25T01:28:11Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T01:28:11Z
+created: 2026-10-21T04:15:02Z
+id: 21
+priority: medium
+started: 2026-10-25T01:14:05Z
+status: done
+tags:
+- test
+- gap
+title: The GRAPH and CLONE groups are bound but untouched by any test - git_graph_ahead_behind,
+  git_graph_descendant_of, git_clone, git_clone_options_init
+updated: 2026-10-25T01:28:11Z
+---
+
+`lib/Git/Libgit2/FFI.pm` binds two function groups that no test in `t/` ever calls:
+
+    grep -rn "git_graph_ahead_behind\|git_graph_descendant_of\|git_clone" t/ | wc -l
+    0
+
+GRAPH (`FFI.pm:1898`):
+- `git_graph_ahead_behind(\my $ahead, \my $behind, $repo, $local, $upstream)` - counts
+  the commits two commits are ahead/behind of each other
+- `git_graph_descendant_of($repo, $commit, $ancestor)` - is `$commit` a descendant of
+  `$ancestor`
+
+Both take a `git_graph` handle that `git_graph_new`/`git_graph_free` create - and those
+two are bound as well, but untested too.
+
+CLONE (`FFI.pm:1345`):
+- `git_clone_options_init($opts_ptr, $version)`
+- `git_clone(\my $repo, $url, $path, $opts)`
+
+A clone needs no network: `t/18-remote-local.t` already builds a local remote, so
+`git_clone` against a path is testable the same way.
+
+What a test would have to be careful about: `git_graph_new` takes the repository, and
+both `git_graph_*` calls need the graph freed again. The repository handle in the tests
+is created per test file and freed at the end - the graph has to be freed before it.
+
+Done when: a test file covers the GRAPH group against a repository with a known
+divergence (ahead/behind counts and the descendant relation both asserted), and the
+CLONE group against a local remote, with `git_clone_options_init` initialising the
+options struct.
+
+---
+Hausstandard 2026-10-21 · kind: test-gap · confidence: verified
+
+Commit 6cc1c78. t/36-graph-clone.t: ahead/behind (2/1), descendant_of (4 Faelle), git_clone_options_init (Version-Feld 0 -> 1) und git_clone gegen lokalen Pfad. Reine Test-Ergaenzung ohne lib-Aenderung, daher nicht rot gegen altes lib; Test kippt bei vertauschten ahead/behind. Karte nannte git_graph_new/free - die gibt es nicht, kein Graph-Handle noetig.
