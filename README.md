@@ -34,11 +34,12 @@ reach a libgit2 function nobody wrapped yet, you want this one.
   release: diff text output, index conflicts, config iteration, …) and Group C
   (whole subsystems: blame, describe, submodule, worktree, notes, apply,
   attr/ignore, pathspec, mailmap).
-- **libgit2 1.5 is the floor.** All 236 bindings exist in 1.5.1. Which system
-  libgit2 is acceptable -- and when the bundled build is used instead -- is
-  `Alien::Libgit2`'s call, not this distribution's. CI covers both paths and
-  prints which one a job took: 1.5.1 on perl 5.36/5.38/5.40 (Debian bookworm),
-  the bundled 1.9.3 share build, and 1.9.4 from Homebrew on macOS.
+- **libgit2 1.9.3 is the floor.** Which system libgit2 is acceptable -- and
+  when the bundled build is used instead -- is `Alien::Libgit2`'s call, not
+  this distribution's. CI covers both paths and prints which one a job took:
+  a 1.9.3 built into /usr/local on perl 5.36/5.38/5.40 (Debian bookworm, whose
+  own 1.5.1 is below the floor), the bundled 1.9.3 share build, and 1.9.4 from
+  Homebrew on macOS.
 - Function signatures are stable across libgit2 1.x. Struct layouts are not —
   see [below](#struct-layout-is-not-stable-across-libgit2-releases).
 - On CPAN, along with the layers either side of it:

@@ -15,6 +15,10 @@ Revision history for Git-Libgit2
     works where the ABI happens to zero-extend. t/30-merge.t now runs
     both: a three-tip merge base, and a fast-forward and an up-to-date
     analysis.
+  - CI: the Debian job builds libgit2 1.9.3 into /usr/local instead of
+    installing apt's libgit2-dev, whose 1.5.1 is below the Alien::Libgit2
+    floor and made ALIEN_INSTALL_TYPE=system fail. README states 1.9.3 as
+    the floor.
 
 0.007     2026-08-30 14:06:50Z
   - New cert_hostkey_offsets: byte offsets of git_cert_hostkey's type,
