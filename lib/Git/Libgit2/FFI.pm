@@ -432,8 +432,8 @@ sub _attach_all {
   _attach git_annotated_commit_id       => [ 'git_annotated_commit' ]                                              => 'opaque';
   _attach git_annotated_commit_free     => [ 'git_annotated_commit' ]                                               => 'void';
   _attach git_merge_base                => [ 'opaque', 'git_repository', 'opaque', 'opaque' ]                     => 'int';
-  _attach git_merge_base_many          => [ 'opaque', 'git_repository', 'uint', 'opaque' ]                     => 'int';
-  _attach git_merge_analysis           => [ 'uint*', 'uint*', 'git_repository', 'opaque', 'uint' ]                  => 'int';
+  _attach git_merge_base_many          => [ 'opaque', 'git_repository', 'size_t', 'opaque' ]                   => 'int';
+  _attach git_merge_analysis           => [ 'uint*', 'uint*', 'git_repository', 'opaque', 'size_t' ]                => 'int';
   _attach git_merge_options_init       => [ 'opaque', 'uint' ]                                                      => 'int';
 
   # ========================

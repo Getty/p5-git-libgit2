@@ -10,6 +10,11 @@ Revision history for Git-Libgit2
     repository. It creates an empty object database without backends;
     the POD says so and points at git_repository_odb for the ODB of an
     open repository. New t/35-odb.t covers git_odb_exists on both.
+  - git_merge_base_many and git_merge_analysis take their element count
+    as size_t, as libgit2 declares it, instead of a 32-bit uint that only
+    works where the ABI happens to zero-extend. t/30-merge.t now runs
+    both: a three-tip merge base, and a fast-forward and an up-to-date
+    analysis.
 
 0.007     2026-08-30 14:06:50Z
   - New cert_hostkey_offsets: byte offsets of git_cert_hostkey's type,
