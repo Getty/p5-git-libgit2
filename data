@@ -1,0 +1,59 @@
+---
+claimed_at: 2026-10-25T01:28:17Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T01:28:17Z
+created: 2026-10-21T04:15:09Z
+id: 22
+priority: medium
+started: 2026-10-25T01:14:11Z
+status: done
+tags:
+- pod
+- docs
+title: 263 podchecker errors - the house directives =func, =method, =synopsis, =description
+  are no POD, and no module carries =encoding
+updated: 2026-10-25T01:28:17Z
+---
+
+`podchecker` on the three modules of this distribution:
+
+    lib/Git/Libgit2.pm        has 14 pod syntax errors
+    lib/Git/Libgit2/FFI.pm    has 241 pod syntax errors
+    lib/Git/Libgit2/Error.pm  has 8 pod syntax errors
+
+Two separate causes.
+
+**1. The house directives are not POD.** The files use their own directives, which
+Pod::Checker rejects as unknown:
+
+    =func        246 x   (FFI.pm, Git::Libgit2.pm)
+    =method        5 x   (Error.pm)
+    =synopsis      3 x
+    =description   3 x
+    =seealso       1 x
+
+That is 258 of the 263 errors. The convention is used elsewhere in the house as well
+(karr, io-k8s-p5, citiai-core show the same podchecker output), so the fix is a house
+decision, not a local one: either map the directives onto standard POD (`=head2` /
+`=head3`), or declare them to Pod::Checker.
+
+A side effect worth knowing: because `L</init_lib>` is resolved against headings only,
+the custom directive breaks internal links too - `Git::Libgit2.pm:269` and `:270` point
+at `init_lib`, which is documented under `=func init_lib` (`Git::Libgit2.pm:247`). Those
+two "unresolved internal link" errors are the same root cause.
+
+**2. No module carries `=encoding`.** All three files contain non-ASCII (the em dash
+in "—"), and none has an `=encoding utf8` line. Pod::Checker answers for each file:
+
+    Non-ASCII character seen before =encoding in '—'. Assuming UTF-8
+    *** ERROR: Wide character in print at Pod/Checker.pm line 636.
+
+Done when: the three modules pass `podchecker` without errors - either by switching to
+standard POD directives or by making the custom ones known to the checker - and by
+carrying an `=encoding utf8` line.
+
+---
+Hausstandard 2026-10-21 · kind: pod · confidence: verified
+
+Commit 23e62bf. Entscheidung: Haus-Direktiven bleiben (Konvention laut Skill getty-perl-pod), der gebaute Dist besteht podchecker bereits. encoding utf8 in alle drei Module, Weaver dupliziert nicht. t/40-pod-source.t bildet die Direktiven wie der Build auf Standard-POD ab und fuehrt Pod::Checker aus, vorher rot (Encoding-Fehler je Datei). Plain podchecker auf den Quelldateien meldet weiter Unknown directive: bewusste Haus-Entscheidung, nicht behoben.
