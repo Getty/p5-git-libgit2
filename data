@@ -1,0 +1,32 @@
+---
+claimed_at: 2026-10-25T01:27:55Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T01:27:55Z
+created: 2026-10-06T19:42:31Z
+id: 18
+priority: medium
+started: 2026-10-25T01:13:47Z
+status: done
+tags:
+- bug
+- ffi
+- docs
+- review-2026-10-06
+title: git_odb_new is bound with a repository argument it does not take; the result
+  is an empty ODB
+updated: 2026-10-25T01:27:55Z
+---
+
+`lib/Git/Libgit2/FFI.pm:505`: `_attach git_odb_new => [ 'opaque*', 'git_repository' ] => 'int';`, POD `FFI.pm:2128-2132`: `git_odb_new(\my $odb, $repo)` - "Create a new ODB wrapper".
+
+libgit2 declares `int git_odb_new(git_odb **odb)` (`git2/odb.h:102`; the two-argument form at `odb.h:74` is the experimental-SHA256 variant and takes `const git_odb_options *`, not a repository). The call creates a fresh object database with **no backends**; the C side never looks at `$repo`. `git_odb_exists($odb, $oid)` on that handle answers 0 for every object in the repository. The function that returns the repository's ODB is `git_repository_odb`, bound correctly at `FFI.pm:134`.
+
+No test touches `git_odb_new`, `git_odb_exists` or `git_odb_free` (`grep -rn odb t/` is empty), so nothing noticed.
+
+Done when: `git_odb_new` is bound as `[ 'opaque*' ]` and documented as "empty ODB, add backends yourself" (or removed), the ODB POD section points at `git_repository_odb`, and a test opens the repository ODB and checks `git_odb_exists` for a present and an absent oid.
+
+---
+Fleet review 2026-10-06 · kind: bug · confidence: verified
+
+Commit bd901de. Kein roter Test moeglich: Platypus erzwingt die Stelligkeit nicht und C ignoriert das zweite Argument; alte und neue Bindung verhalten sich zur Laufzeit gleich (per Skript gegen altes lib belegt). Fix = deklarierte Signatur + POD; t/35-odb.t haelt den Vertrag fest (Repo-ODB kennt Objekt/nicht vorhandene Oid, leere ODB kennt nichts). Entscheidung: Funktion behalten statt entfernen.
