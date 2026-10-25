@@ -447,7 +447,7 @@ sub _attach_all {
   # Stash
   # ========================
 
-  _attach git_stash_save   => [ 'opaque*', 'git_repository', 'git_signature', 'string', 'uint' ]        => 'int';
+  _attach git_stash_save   => [ 'opaque', 'git_repository', 'git_signature', 'string', 'uint' ]        => 'int';
   _attach git_stash_apply  => [ 'git_repository', 'size_t', 'opaque' ]                                   => 'int';
   _attach git_stash_drop  => [ 'git_repository', 'size_t' ]                                             => 'int';
 
@@ -1913,9 +1913,14 @@ Return true if C<$commit> is a descendant of C<$ancestor>.
 
 =func git_stash_save
 
-    Git::Libgit2::FFI::git_stash_save(\my $stash, $repo, $sig, $msg, $flags);
+    my $buf = "\0" x 20;
+    my ($oid_ptr) = scalar_to_buffer($buf);
+    Git::Libgit2::FFI::git_stash_save($oid_ptr, $repo, $sig, $msg, $flags);
+    my $stash_id = oid_to_hex($oid_ptr);
 
-Save the current working directory state as a stash. Free with C<git_object_free>.
+Save the current working directory state as a stash. The first argument is a
+caller-allocated 20-byte C<git_oid> buffer that receives the id of the stash
+commit (what C<refs/stash> points at). Nothing is returned that needs freeing.
 
 =func git_stash_apply
 

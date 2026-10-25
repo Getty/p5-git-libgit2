@@ -1,6 +1,11 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - Fix git_stash_save: its out-param is a caller-allocated 20-byte
+    git_oid, bound as opaque instead of opaque*. The old binding handed
+    libgit2 a pointer-sized temporary, so the 20-byte stash commit id
+    overran it and the caller got eight hash bytes back as an "address".
+    The POD now shows the buffer plus oid_to_hex.
 
 0.007     2026-08-30 14:06:50Z
   - New cert_hostkey_offsets: byte offsets of git_cert_hostkey's type,
