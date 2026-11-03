@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 use Test2::V0;
 use Pod::Checker;
 use Path::Tiny;
