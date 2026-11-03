@@ -39,4 +39,4 @@ jobs:
           perl -MAlien::Libgit2 -e 'printf "install_type=%s version=%s\n",
             Alien::Libgit2->install_type, Alien::Libgit2->version // q(?)'
       - name: dzil test
-        uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@main
+        uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@v1

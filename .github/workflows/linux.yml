@@ -78,7 +78,7 @@ jobs:
           perl -MAlien::Libgit2 -e 'printf "install_type=%s version=%s\n",
             Alien::Libgit2->install_type, Alien::Libgit2->version // q(?)'
       - name: dzil test
-        uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@main
+        uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@v1
 
   # The Alien::Libgit2 share build — its bundled libgit2 1.9.3, which is what a
   # user without a system libgit2 ends up linking against. Pinned by
@@ -115,4 +115,4 @@ jobs:
           perl -MAlien::Libgit2 -e 'printf "install_type=%s version=%s\n",
             Alien::Libgit2->install_type, Alien::Libgit2->version // q(?)'
       - name: dzil test
-        uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@main
+        uses: Getty/p5-dist-zilla-pluginbundle-author-getty/.github/actions/dzil-test@v1
