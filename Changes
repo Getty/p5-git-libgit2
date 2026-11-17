@@ -23,6 +23,7 @@ Revision history for Git-Libgit2
     trips over the em dashes. New t/40-pod-source.t maps the house POD
     shortcuts to standard POD the way the build does and requires all
     three modules to pass podchecker.
+  - Requires Alien::Libgit2 0.003.
 
 0.007     2026-08-30 14:06:50Z
   - New cert_hostkey_offsets: byte offsets of git_cert_hostkey's type,
