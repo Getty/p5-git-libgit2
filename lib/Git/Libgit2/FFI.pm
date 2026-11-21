@@ -1,7 +1,7 @@
 # ABSTRACT: Internal FFI::Platypus instance for Git::Libgit2
 
 package Git::Libgit2::FFI;
-our $VERSION = '0.008';
+our $VERSION = '0.009';
 use strict;
 use warnings;
 use FFI::Platypus 2.00;
