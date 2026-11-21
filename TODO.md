@@ -270,7 +270,6 @@ git_remote_delete          => [ 'git_repository', 'string' ]   => 'int'
 git_remote_rename          => [ 'opaque', 'git_repository', 'string', 'string' ] => 'int'  # out git_strarray* (problem refspecs)
 git_remote_set_url         => [ 'git_repository', 'string', 'string' ] => 'int'
 git_remote_set_pushurl     => [ 'git_repository', 'string', 'string' ] => 'int'
-git_remote_pushurl         => [ 'git_remote' ]                 => 'string'
 git_remote_default_branch  => [ 'opaque', 'git_remote' ]       => 'int'   # out git_buf* — gotcha #3, needs live connection
 git_remote_refspec_count   => [ 'git_remote' ]                 => 'size_t'
 ```
