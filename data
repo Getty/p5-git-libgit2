@@ -1,0 +1,3 @@
+{"action":"move","agent":"libgit2-worker","detail":"in-progress","task_id":23,"ts":"2026-11-21T21:31:43Z"}
+{"action":"handoff","agent":"libgit2-worker","detail":"review","task_id":23,"ts":"2026-11-21T21:31:44Z"}
+{"action":"move","agent":"libgit2-worker","detail":"done","task_id":23,"ts":"2026-11-21T21:36:50Z"}
