@@ -1,0 +1,20 @@
+---
+claimed_at: 2026-11-21T21:36:50Z
+claimed_by: libgit2-worker
+class: standard
+completed: 2026-11-21T21:36:50Z
+created: 2026-11-21T18:40:02Z
+id: 23
+priority: low
+started: 2026-11-21T21:31:43Z
+status: done
+tags:
+- ffi
+- api
+title: Bind git_remote_pushurl
+updated: 2026-11-21T21:36:50Z
+---
+
+Requested from Git::Native (its k47). Two distributions currently attach git_remote_pushurl themselves through Git::Libgit2::FFI::ffi()->function: Git::Native (Remote.pm, _pushurl) and App::karr (App::karr::Git::_remote_pushurl). Done looks like: a binding in Git::Libgit2 (const char* git_remote_pushurl(const git_remote*), NULL when no pushurl is configured, no rc, so no check_rc), a test, and a Changes entry; then Git::Native pins the new version and drops its local attach. Not a release request: the version bump and any upload wait for the maintainer.
+
+git_remote_pushurl bound (string return, undef when unset) with POD, README list/count 237, Changes entry and tests in t/18-remote-local.t; prove -lr t/ green. Uncommitted, awaiting review.
