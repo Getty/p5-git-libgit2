@@ -1,6 +1,8 @@
 Revision history for Git-Libgit2
 
 {{$NEXT}}
+  - Bind git_remote_pushurl: the push URL of a remote, undef when none is
+    configured. No return code, so no check_rc.
 
 0.008     2026-11-21 01:52:59Z
   - Fix git_stash_save: its out-param is a caller-allocated 20-byte

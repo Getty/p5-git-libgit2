@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use Test2::V0;
-use Path::Tiny;
+use Path::Tiny qw( path );
 use Git::Libgit2 qw( init_lib shutdown_lib check_rc );
 use Git::Libgit2::FFI ();
 use FFI::Platypus::Buffer qw( scalar_to_buffer );
@@ -65,6 +65,9 @@ is( $remote_name, 'origin', 'git_remote_name returned "origin"' );
 my $remote_url = Git::Libgit2::FFI::git_remote_url($remote);
 like( $remote_url, qr{file://.*remote\.git}, 'git_remote_url contains file://...remote.git' );
 
+# --- git_remote_pushurl: undef without a configured pushurl ---
+is( Git::Libgit2::FFI::git_remote_pushurl($remote), undef, 'git_remote_pushurl is undef when none is set' );
+
 # --- git_remote_connect(DIRECTION_FETCH) + disconnect ---
 # NOTE: git_remote_ls is NOT tested here because it writes pointers into
 # the output buffer that become dangling after git_remote_disconnect.
@@ -84,6 +87,15 @@ check_rc Git::Libgit2::FFI::git_remote_lookup( \$remote2, $local_repo, 'origin' 
 ok( $remote2, 'git_remote_lookup found origin' );
 is( Git::Libgit2::FFI::git_remote_name($remote2), 'origin', 'lookup: remote name is origin' );
 Git::Libgit2::FFI::git_remote_free($remote2);
+
+# --- git_remote_pushurl: set via config, seen after a fresh lookup ---
+my $config_file = path( $local_path, '.git', 'config' );
+$config_file->append( "[remote \"origin\"]\n\tpushurl = file://$remote_path.push\n" );
+my $remote3;
+check_rc Git::Libgit2::FFI::git_remote_lookup( \$remote3, $local_repo, 'origin' );
+is( Git::Libgit2::FFI::git_remote_pushurl($remote3), "file://$remote_path.push", 'git_remote_pushurl returns the configured pushurl' );
+like( Git::Libgit2::FFI::git_remote_url($remote3), qr{remote\.git\z}, 'git_remote_url unaffected by pushurl' );
+Git::Libgit2::FFI::git_remote_free($remote3);
 
 # Cleanup
 Git::Libgit2::FFI::git_repository_free($local_repo);

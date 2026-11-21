@@ -27,7 +27,7 @@ reach a libgit2 function nobody wrapped yet, you want this one.
 
 ## Status
 
-- **236 libgit2 functions bound**, each with POD carrying a call example and its
+- **237 libgit2 functions bound**, each with POD carrying a call example and its
   ownership rules — see [the full list below](#bound-surface).
 - **The binding is not complete, on purpose.** [`TODO.md`](TODO.md) catalogues
   what is left, split into Group B (high value, wanted for a complete-enough
@@ -189,7 +189,7 @@ config levels, and the complete `git_error_code` enum through `GIT_EREADONLY`
 
 ## Bound surface
 
-236 functions, grouped as in the
+237 functions, grouped as in the
 [`Git::Libgit2::FFI`](lib/Git/Libgit2/FFI.pm) POD, which is where the
 signatures, out-parameters and `*_free` pairings live. `*_options_init` is
 always the non-deprecated spelling — libgit2 1.7 removed the `*_init_options`
@@ -219,7 +219,7 @@ variants.
 
 **Signature** — `git_signature_new`, `git_signature_now`, `git_signature_default`, `git_signature_free`
 
-**Remote** — `git_remote_lookup`, `git_remote_create`, `git_remote_create_anonymous`, `git_remote_url`, `git_remote_name`, `git_remote_init_callbacks`, `git_remote_fetch`, `git_remote_push`, `git_fetch_options_init`, `git_push_options_init`, `git_remote_connect`, `git_remote_ls`, `git_remote_disconnect`, `git_remote_free`
+**Remote** — `git_remote_lookup`, `git_remote_create`, `git_remote_create_anonymous`, `git_remote_url`, `git_remote_name`, `git_remote_pushurl`, `git_remote_init_callbacks`, `git_remote_fetch`, `git_remote_push`, `git_fetch_options_init`, `git_push_options_init`, `git_remote_connect`, `git_remote_ls`, `git_remote_disconnect`, `git_remote_free`
 
 **Credentials** — `git_credential_userpass_plaintext_new`, `git_credential_ssh_key_new`, `git_credential_ssh_key_from_agent`, `git_credential_default_new`, `git_credential_username_new`, `git_credential_free`
 

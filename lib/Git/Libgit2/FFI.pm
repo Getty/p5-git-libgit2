@@ -272,6 +272,7 @@ sub _attach_all {
   _attach git_remote_create_anonymous => [ 'opaque*', 'git_repository', 'string' ]                                  => 'int';
   _attach git_remote_url             => [ 'git_remote' ]                                                           => 'string';
   _attach git_remote_name            => [ 'git_remote' ]                                                           => 'string';
+  _attach git_remote_pushurl          => [ 'git_remote' ]                                                           => 'string';
   _attach git_remote_init_callbacks   => [ 'opaque', 'uint' ]                                                       => 'int';
   _attach git_fetch_options_init     => [ 'opaque', 'uint' ]                                                       => 'int';
   _attach git_push_options_init       => [ 'opaque', 'uint' ]                                                       => 'int';
@@ -1242,6 +1243,15 @@ Return the URL of the remote.
     my $name = Git::Libgit2::FFI::git_remote_name($remote);
 
 Return the name of the remote.
+
+=func git_remote_pushurl
+
+    my $pushurl = Git::Libgit2::FFI::git_remote_pushurl($remote);
+
+Return the push URL of the remote, or C<undef> when none is configured
+(C<remote.E<lt>nameE<gt>.pushurl> unset). It returns no return code, so there is
+nothing for C<check_rc>. Use C<git_remote_url> for the fetch URL; libgit2 itself
+falls back to that one when pushing without a push URL.
 
 =func git_remote_init_callbacks
 
