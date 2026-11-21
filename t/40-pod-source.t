@@ -3,6 +3,9 @@ use Test2::V0;
 use Pod::Checker;
 use Path::Tiny;
 
+local $ENV{GIT_CONFIG_GLOBAL} = '/dev/null';
+local $ENV{GIT_CONFIG_SYSTEM} = '/dev/null';
+
 # The modules are written with the house POD shortcuts (=func, =method,
 # =synopsis, ...) that Dist::Zilla turns into standard POD at build time.
 # podchecker does not know them, so map them the same way the build does and
