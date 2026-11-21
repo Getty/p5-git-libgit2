@@ -1,6 +1,6 @@
 Revision history for Git-Libgit2
 
-{{$NEXT}}
+0.008     2026-11-21 01:52:59Z
   - Fix git_stash_save: its out-param is a caller-allocated 20-byte
     git_oid, bound as opaque instead of opaque*. The old binding handed
     libgit2 a pointer-sized temporary, so the 20-byte stash commit id
