@@ -32,4 +32,4 @@ the README bound-surface list that names them. `TODO.md`, the wording of `README
 ## Perl specifics — reference, don't restate
 
 Skill content is never restated here: the skills are the source, the agents get them
-force-loaded via `briefing.skills` (`libgit2-core` and the shared Perl skills).
+force-loaded via `skills:` (`libgit2-core` and the shared Perl skills).
